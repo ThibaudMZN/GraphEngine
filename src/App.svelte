@@ -3,8 +3,9 @@
   import "svelte-highlight/styles/github-dark-dimmed.css";
   import javascript from "svelte-highlight/languages/javascript";
   import GraphEditor from "./lib/graph/components/GraphEditor.svelte";
-  import { generatedCodeStore } from "./lib/graph/GraphStore";
+  import { generatedCodeStore, graphStore } from "./lib/graph/GraphStore";
   import { NodeColor, Nodes } from "./lib/graph/NodeTypes";
+  import CanvasView from "./lib/engine/components/CanvasView.svelte";
 
   let graphEditorElement: GraphEditor | undefined = $state();
 </script>
@@ -15,6 +16,7 @@
       id="dummy-img"
       src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
     />
+    <button onclick={() => graphStore.cleanGraph()}>Clean</button>
     {#each Object.entries(Nodes) as [id, node]}
       <div
         class="draggable-node"
@@ -35,6 +37,7 @@
   <aside>
     <Highlight language={javascript} code={$generatedCodeStore} />
   </aside>
+  <CanvasView />
 </main>
 
 <style>

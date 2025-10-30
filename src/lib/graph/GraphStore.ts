@@ -1,6 +1,7 @@
 import { writable, derived, get } from "svelte/store";
 import { type InOutType, type NodeTypes } from "./NodeTypes";
 import { generateCode } from "./CodeGen";
+import { cleanLayout } from "./GraphCleaner";
 
 export type NodeId = string;
 export type Vector2 = { x: number; y: number };
@@ -33,7 +34,9 @@ const id1 = "1";
 const id2 = "2";
 const id3 = "3";
 const id4 = "4";
-const { subscribe, update } = writable<GraphState>({
+const id5 = "5";
+const id6 = "6";
+const defaultGraph = {
   nodes: {
     [id1]: {
       type: "OnStart",
@@ -49,7 +52,15 @@ const { subscribe, update } = writable<GraphState>({
     },
     [id4]: {
       type: "Move",
-      position: { x: 240, y: 180 },
+      position: { x: 400, y: 240 },
+    },
+    [id5]: {
+      type: "If",
+      position: { x: 240, y: 240 },
+    },
+    [id6]: {
+      type: "Constant",
+      position: { x: 70, y: 90 },
     },
   },
   connections: [
@@ -58,8 +69,34 @@ const { subscribe, update } = writable<GraphState>({
       to: { id: id2, name: "flow" },
       type: "flow",
     },
+    {
+      from: { id: id3, name: "flow" },
+      to: { id: id5, name: "flow" },
+      type: "flow",
+    },
+    {
+      from: { id: id5, name: "true" },
+      to: { id: id4, name: "flow" },
+      type: "flow",
+    },
+    {
+      from: { id: id6, name: "value" },
+      to: { id: id2, name: "dx" },
+      type: "number",
+    },
+    {
+      from: { id: id6, name: "value" },
+      to: { id: id2, name: "dy" },
+      type: "number",
+    },
   ],
-});
+};
+
+const savedGraphString = localStorage.getItem("graph");
+
+const { subscribe, update } = writable<GraphState>(
+  savedGraphString ? JSON.parse(savedGraphString) : defaultGraph,
+);
 
 export const graphStore = {
   subscribe,
@@ -78,6 +115,18 @@ export const graphStore = {
     });
     return newId.toString() as NodeId;
   },
+  deleteNode: (id: string) => {
+    update((actual) => {
+      const allConnections = actual.connections.filter(
+        (c) => c.from.id === id || c.to.id === id,
+      );
+      for (const connection of allConnections) {
+        graphStore.deleteConnection(connection);
+      }
+      delete actual.nodes[id];
+      return actual;
+    });
+  },
   addConnection: (
     from: ConnectionPoint,
     to: ConnectionPoint,
@@ -95,6 +144,11 @@ export const graphStore = {
       return actual;
     });
   },
+  cleanGraph: () => {
+    update((actual) => {
+      return cleanLayout(actual);
+    });
+  },
 };
 
 // export const generatedCodeStore = derived(graphStore, ($graph) => generateCode($graph));
@@ -109,3 +163,7 @@ export const generatedCodeStore = derived(
   },
   "",
 );
+
+graphStore.subscribe((g) => {
+  localStorage.setItem("graph", JSON.stringify(g));
+});

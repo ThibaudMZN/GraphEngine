@@ -3,6 +3,7 @@
     GRAPH_NODE_HEIGHT,
     GRAPH_NODE_WIDTH,
     type GraphNode,
+    graphStore,
     type NodeId,
     type Vector2,
   } from "../GraphStore";
@@ -46,6 +47,7 @@
       mousePosition: { x: e.clientX, y: e.clientY },
       nodePosition: { x: node.position.x, y: node.position.y },
     })}
+  ondblclick={() => graphStore.deleteNode(id)}
 />
 <text
   x={node.position.x}

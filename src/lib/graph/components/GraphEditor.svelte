@@ -132,7 +132,7 @@
   bind:this={svgElement}
   ondragover={handleDragover}
 >
-  {#each $graphStore.connections as connection (`${connection.from.id}-${connection.to.id}`)}
+  {#each $graphStore.connections as connection (`${connection.from.id}-${connection.to.id}-${connection.from.name}-${connection.to.name}`)}
     <ConnectionLine {connection} />
   {/each}
   {#each Object.entries($graphStore.nodes) as [id, node] (id)}

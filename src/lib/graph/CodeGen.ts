@@ -27,7 +27,7 @@ export async function generateCode(graph: GraphState): Promise<string> {
     ${initCode}
     ${updateCode}
 
-    export function init(context) {
+    exports.init = function(context) {
       ctx = context;
       ${Object.entries(graph.nodes)
         .filter(([_id, node]) => node.type === "OnStart")
@@ -35,7 +35,7 @@ export async function generateCode(graph: GraphState): Promise<string> {
         .join("\n")}
     }
     
-    export function update(context, delta) {
+    exports.update = function(context, delta) {
       ctx = context;
       ${Object.entries(graph.nodes)
         .filter(([_id, node]) => node.type === "OnUpdate")

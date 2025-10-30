@@ -6,11 +6,12 @@ export type InOutType = "flow" | "string" | "number";
 type ParameterType = "number";
 
 export type Node = {
-  category: "Event" | "Action" | "Logic";
+  category: "Event" | "Action" | "Logic" | "Data";
   name: string;
   outputs?: { name: string; type: InOutType }[];
   inputs?: { name: string; type: InOutType }[];
   code: (id: NodeId, node: Node, connections: ConnectionResolver) => string;
+  parameters?: Record<string, any>; //TODO: Parameters needs to be on the NodeInstance, not here. This should just be a list of name and type of parameters
 };
 
 export const Nodes: Record<string, Node> = {
@@ -54,6 +55,13 @@ export const Nodes: Record<string, Node> = {
       `;
     },
   },
+  Constant: {
+    name: "Constant",
+    category: "Data",
+    parameters: { value: 10 },
+    outputs: [{ name: "value", type: "number" }],
+    code: () => "",
+  },
   Move: {
     name: "Move",
     category: "Action",
@@ -65,13 +73,9 @@ export const Nodes: Record<string, Node> = {
     outputs: [{ name: "flow", type: "flow" }],
     code: (id, node, connections) => {
       const flowNext = connections.flow(id, node, "flow");
-      // TODO: We need to get the 'flowPrevious' here to get the proper values, not in "params"
-      // const target = JSON.stringify(node.params?.target);
-      // const dx = node.params?.dx ?? 0;
-      // const dy = node.params?.dy ?? 0;
-      const target = JSON.stringify("dummy");
-      const dx = 10;
-      const dy = 10;
+      const dx = parseInt(connections.getExpressionForSocket(id, "dx")) || 0;
+      const dy = parseInt(connections.getExpressionForSocket(id, "dy")) || 0;
+      const target = JSON.stringify("player");
       return `
                 ctx.objects[${target}].x += ${dx};
                 ctx.objects[${target}].y += ${dy};
@@ -89,19 +93,15 @@ export const Nodes: Record<string, Node> = {
     outputs: [{ name: "flow", type: "flow" }],
     code: (id, node, connections) => {
       const flowNext = connections.flow(id, node, "flow");
-      // TODO: We need to get the 'flowPrevious' here to get the proper values, not in "params"
-      // const target = JSON.stringify(node.params?.target);
-      // const dx = node.params?.dx ?? 0;
-      // const dy = node.params?.dy ?? 0;
+      const angle = parseInt(connections.getExpressionForSocket(id, "angle"));
       const target = JSON.stringify("dummy");
-      const angle = 80;
       return `
                 ctx.objects[${target}].rotation += ${angle};
                 ${flowNext}
             `;
     },
   },
-};
+} as const;
 
 export type NodeTypes = keyof typeof Nodes;
 
@@ -117,4 +117,5 @@ export const NodeColor: Record<Node["category"], Color> = {
   Action: "#ff5050",
   Event: "#50ff50",
   Logic: "#5050ff",
+  Data: "#ff0050",
 };
