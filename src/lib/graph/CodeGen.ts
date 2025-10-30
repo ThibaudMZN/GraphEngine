@@ -1,6 +1,3 @@
-import prettier from "prettier/standalone";
-import parserBabel from "prettier/plugins/babel";
-import parserEstree from "prettier/plugins/estree";
 import { createConnectionResolver } from "./ConnectionResolver";
 import type { GraphState } from "./GraphStore";
 import { Nodes } from "./NodeTypes";
@@ -46,8 +43,8 @@ export async function generateCode(graph: GraphState): Promise<string> {
         .join("\n")}
     }
   `;
-  const formatted = await formatCode(source);
-  const cleaned = await minify(formatted, {
+
+  const cleaned = await minify(source, {
     compress: {
       dead_code: true,
       unused: true,
@@ -60,20 +57,4 @@ export async function generateCode(graph: GraphState): Promise<string> {
     },
   });
   return cleaned.code || "";
-}
-
-async function formatCode(code: string): Promise<string> {
-  try {
-    return prettier.format(code, {
-      parser: "babel",
-      plugins: [parserEstree, parserBabel],
-      semi: true,
-      singleQuote: true,
-      trailingComma: "es5",
-      tabWidth: 2,
-    });
-  } catch (err) {
-    console.error("Prettier formatting failed:", err);
-    return code;
-  }
 }
