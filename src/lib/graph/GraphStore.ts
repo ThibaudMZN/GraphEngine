@@ -125,7 +125,7 @@ export const graphStore = {
     });
     return newId.toString() as NodeId;
   },
-  deleteNode: (id: string) => {
+  deleteNode: async (id: string) => {
     update((actual) => {
       const allConnections = actual.connections.filter(
         (c) => c.from.id === id || c.to.id === id,
@@ -136,6 +136,8 @@ export const graphStore = {
       delete actual.nodes[id];
       return actual;
     });
+
+    await updateGeneratedCode();
   },
   addConnection: async (
     from: ConnectionPoint,

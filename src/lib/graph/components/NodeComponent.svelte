@@ -62,7 +62,7 @@
         mousePosition: { x: e.clientX, y: e.clientY },
         nodePosition: { x: node.position.x, y: node.position.y },
       })}
-    ondblclick={() => graphStore.deleteNode(id)}
+    ondblclick={async () => await graphStore.deleteNode(id)}
   />
   {#if customComponent[node.type]}
     {@const CustomComponent = customComponent[node.type]}

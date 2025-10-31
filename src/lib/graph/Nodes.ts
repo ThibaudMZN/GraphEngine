@@ -11,6 +11,7 @@ export type NodeType =
   | "Input"
   | "Constant"
   | "Move"
+  | "Position"
   | "Rotate";
 export type NodeCategory = "Event" | "Action" | "Logic" | "Data";
 export type Node = {
@@ -19,7 +20,7 @@ export type Node = {
   outputs?: Socket[];
   inputs?: Socket[];
   code: (id: NodeId, node: Node, connections: ConnectionResolver) => string;
-  parameters?: Record<string, any>; //TODO: Parameters needs to be on the NodeInstance, not here. This should just be a list of name and type of parameters
+  parameters?: Record<string, any>;
 };
 export const Nodes: Record<NodeType, Node> = {
   OnStart: {
@@ -80,6 +81,16 @@ export const Nodes: Record<NodeType, Node> = {
     outputs: [{ name: "value", type: "boolean" }],
     code: () => "",
   },
+  Position: {
+    name: "Position",
+    category: "Data",
+    parameters: { x: "ctx.objects['player'].x", y: "ctx.objects['player'].y" },
+    outputs: [
+      { name: "x", type: "number" },
+      { name: "y", type: "number" },
+    ],
+    code: () => "",
+  },
   Move: {
     name: "Move",
     category: "Action",
@@ -91,8 +102,8 @@ export const Nodes: Record<NodeType, Node> = {
     outputs: [{ name: "flow", type: "flow" }],
     code: (id, node, connections) => {
       const flowNext = connections.flow(id, node, "flow");
-      const dx = parseInt(connections.getExpressionForSocket(id, "dx")) || 0;
-      const dy = parseInt(connections.getExpressionForSocket(id, "dy")) || 0;
+      const dx = connections.getExpressionForSocket(id, "dx") || 0;
+      const dy = connections.getExpressionForSocket(id, "dy") || 0;
       const target = JSON.stringify("player");
       return `
                 ctx.objects[${target}].x += ${dx};
