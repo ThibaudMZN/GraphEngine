@@ -215,6 +215,9 @@
 <style>
   svg {
     border: 1px solid white;
+    box-sizing: border-box;
+    height: 100%;
+    width: 100%;
   }
 
   svg.is-panning {

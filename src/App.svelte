@@ -1,7 +1,5 @@
 <script lang="ts">
-  import Highlight from "svelte-highlight";
   import "svelte-highlight/styles/github-dark-dimmed.css";
-  import javascript from "svelte-highlight/languages/javascript";
   import GraphEditor from "./lib/graph/components/GraphEditor.svelte";
   import { generatedCodeStore, graphStore } from "./lib/graph/GraphStore";
   import { NodeColors, Nodes } from "./lib/graph/Nodes";
@@ -12,20 +10,22 @@
 
 <main>
   <div class="toolbar">
+    <!-- svelte-ignore a11y_missing_attribute -->
     <img
       id="dummy-img"
       src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
     />
     <button onclick={() => graphStore.cleanGraph()}>Clean</button>
     {#each Object.entries(Nodes) as [id, node]}
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
       <div
         class="draggable-node"
         draggable="true"
         style="background: {NodeColors[node.category]}"
         ondragstart={(e) => {
-          e.dataTransfer.setData("application/node-type", id);
+          e.dataTransfer?.setData("application/node-type", id);
           const dragImg = document.getElementById("dummy-img");
-          e.dataTransfer?.setDragImage(dragImg, 0, 0);
+          if (dragImg) e.dataTransfer?.setDragImage(dragImg, 0, 0);
         }}
         ondragend={(e) => graphEditorElement?.triggerDragEnd(e)}
       >
@@ -33,11 +33,12 @@
       </div>
     {/each}
   </div>
-  <GraphEditor bind:this={graphEditorElement} />
-  <aside>
-    <Highlight language={javascript} code={$generatedCodeStore} />
-  </aside>
-  <CanvasView />
+  <div class="editor">
+    <GraphEditor bind:this={graphEditorElement} />
+    <CanvasView />
+  </div>
+  <!--<aside>
+  </aside>-->
 </main>
 
 <style>
@@ -46,21 +47,21 @@
     top: 0;
     left: 0;
   }
+
   main {
     display: flex;
-    align-items: center;
-    justify-content: center;
+    flex-direction: column;
     height: 100vh;
     overflow: hidden;
-    gap: 2rem;
   }
 
   .toolbar {
     padding: 1rem;
     border: 1px solid white;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     gap: 1rem;
+    box-sizing: border-box;
   }
 
   .draggable-node {
@@ -73,5 +74,12 @@
   .draggable-node span {
     pointer-events: none;
     user-select: none;
+  }
+
+  .editor {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    height: 100%;
+    position: relative;
   }
 </style>
