@@ -1,11 +1,12 @@
 <script lang="ts">
   import {
-    GRAPH_NODE_HEIGHT,
     GRAPH_NODE_WIDTH,
     type NodeInstance,
-    graphStore,
     type NodeId,
     type Vector2,
+    GRAPH_NODE_HEADER_HEIGHT,
+    GRAPH_NODE_SOCKET_HEIGHT,
+    graphStore,
   } from "../GraphStore";
   import {
     Nodes,
@@ -13,6 +14,9 @@
     SocketColors,
     type SocketType,
     type NodeType,
+    NodeHeaderColors,
+    NodeIcons,
+    type Socket,
   } from "../Nodes";
   import type { Component } from "svelte";
   import InputComponent from "./customNodeComponents/InputComponent.svelte";
@@ -44,99 +48,191 @@
 
   const nodeDetails: Node = Nodes[node.type];
   const width = GRAPH_NODE_WIDTH;
-  const height = GRAPH_NODE_HEIGHT;
+
+  const nbSockets = Math.max(
+    nodeDetails.inputs?.length || 0,
+    nodeDetails.outputs?.length || 0,
+  );
+  const socketsHeight =
+    nbSockets * GRAPH_NODE_SOCKET_HEIGHT +
+    32 +
+    (nbSockets > 1 ? (nbSockets - 1) * 24 : 0);
+  const height = GRAPH_NODE_HEADER_HEIGHT + socketsHeight;
+
+  const handleLocalConnectionClick = (
+    e: MouseEvent & {
+      currentTarget: EventTarget & HTMLDivElement;
+    },
+    socket: Socket,
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const pos = e.currentTarget.getBoundingClientRect();
+    const x = pos.x + pos.width / 2;
+    const y = pos.y + pos.height / 2;
+    handleConnectionClick({ x, y }, id, socket.type, socket.name);
+  };
+
+  const capitalizeFirstLetter = (str: string) =>
+    String(str).charAt(0).toUpperCase() + String(str).slice(1);
 </script>
 
 <g {id}>
-  <rect
+  <!-- svelte-ignore a11y_no_static_element_interactions -->
+  <foreignObject
     x={node.position.x - width / 2}
     y={node.position.y - height / 2}
     {width}
     {height}
-    fill="black"
-    stroke="white"
-    role="button"
-    tabindex="0"
-    rx="4"
-    aria-label={nodeDetails.name}
     onmousedown={(e) =>
       handleMouseDown(id, {
         mousePosition: { x: e.clientX, y: e.clientY },
         nodePosition: { x: node.position.x, y: node.position.y },
       })}
     ondblclick={async () => await graphStore.deleteNode(id)}
-  />
-  {#if customComponent[node.type]}
-    {@const CustomComponent = customComponent[node.type]}
-    <CustomComponent {node} {id} />
-  {:else}
-    <text
-      x={node.position.x}
-      y={node.position.y}
-      text-anchor="middle"
-      dominant-baseline="central"
-      fill="white"
-    >
-      {nodeDetails.name}
-    </text>
-  {/if}
-  {#each nodeDetails.inputs as input, index}
-    {@const count = nodeDetails.inputs?.length || 0}
-    {@const spacing = count > 1 ? height / (count - 1) : 0}
-    {@const cy =
-      count === 1
-        ? node.position.y
-        : node.position.y - height / 2 + index * spacing}
-    {@const cx = node.position.x - width / 2}
-    <circle
-      class="port input-port"
-      data-node-id={id}
-      data-port-name={input.name}
-      {cx}
-      {cy}
-      r={4}
-      fill={SocketColors[input.type]}
-      role="button"
-      tabindex="0"
-      onmousedown={() =>
-        handleConnectionClick({ x: cx, y: cy }, id, input.type, input.name)}
-    />
-  {/each}
-  {#each nodeDetails.outputs as output, index}
-    {@const count = nodeDetails.outputs?.length || 0}
-    {@const spacing = count > 1 ? height / (count - 1) : 0}
-    {@const cy =
-      count === 1
-        ? node.position.y
-        : node.position.y - height / 2 + index * spacing}
-    {@const cx = node.position.x + width / 2}
-    <circle
-      class="port output-port"
-      data-node-id={id}
-      data-port-name={output.name}
-      {cx}
-      {cy}
-      r={4}
-      fill={SocketColors[output.type]}
-      role="button"
-      tabindex="0"
-      onmousedown={() =>
-        handleConnectionClick({ x: cx, y: cy }, id, output.type, output.name)}
-    />
-  {/each}
+  >
+    <div class="node-container">
+      <div
+        class="node-header"
+        style="background: {NodeHeaderColors[nodeDetails.category]};"
+      >
+        <span>{nodeDetails.name}</span>
+        <i class="ri-{NodeIcons[nodeDetails.category]}"></i>
+      </div>
+      <div class="node-sockets-container">
+        <!-- TODO: We still need to find a way to instantiate custom components (for Input, Constant and Comparator) -->
+        {#each nodeDetails.inputs as input, index (index)}
+          <div class="node-socket-line">
+            <div class="node-socket">
+              <div
+                class="socket input-socket"
+                style="background: {SocketColors[input.type]}"
+                data-node-id={id}
+                data-port-name={input.name}
+                data-port-type="input"
+                onmousedown={(e) => handleLocalConnectionClick(e, input)}
+              ></div>
+              <span>{capitalizeFirstLetter(input.name)}</span>
+            </div>
+            {#if nodeDetails.outputs && nodeDetails.outputs[index]}
+              {@const output = nodeDetails.outputs[index]}
+              <div class="node-socket">
+                <span>{capitalizeFirstLetter(output.name)}</span>
+                <div
+                  class="socket output-socket"
+                  style="background: {SocketColors[output.type]}"
+                  data-node-id={id}
+                  data-port-name={output.name}
+                  data-port-type="output"
+                  onmousedown={(e) => handleLocalConnectionClick(e, output)}
+                ></div>
+              </div>
+            {:else if customComponent[node.type]}
+              {@const CustomComponent = customComponent[node.type]}
+              <CustomComponent {node} {id} />
+            {/if}
+          </div>
+        {/each}
+        {#if nodeDetails.outputs && nodeDetails.outputs.length > (nodeDetails.inputs?.length || 0)}
+          {@const nbToRemove = nodeDetails.inputs?.length || 0}
+          {@const remainingOutputs = nodeDetails.outputs.slice(
+            nbToRemove,
+            nodeDetails.outputs.length - nbToRemove,
+          )}
+          {#each remainingOutputs as output, index (index)}
+            <div
+              class="node-socket-line"
+              class:right-align={!customComponent[node.type]}
+            >
+              {#if customComponent[node.type]}
+                {@const CustomComponent = customComponent[node.type]}
+                <CustomComponent {node} {id} />
+              {/if}
+              <div class="node-socket">
+                <span>{capitalizeFirstLetter(output.name)}</span>
+                <div
+                  class="socket output-socket"
+                  style="background: {SocketColors[output.type]}"
+                  data-node-id={id}
+                  data-port-name={output.name}
+                  data-port-type="output"
+                  onmousedown={(e) => handleLocalConnectionClick(e, output)}
+                ></div>
+              </div>
+            </div>
+          {/each}
+        {/if}
+      </div>
+    </div>
+  </foreignObject>
 </g>
 
-<style>
-  circle {
+<style lang="scss">
+  .node-container {
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    box-sizing: border-box;
+    background: var(--background);
+    overflow: hidden;
     cursor: pointer;
-  }
 
-  rect {
-    cursor: pointer;
-  }
+    .node-header {
+      padding: 8px 16px;
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
 
-  text {
-    pointer-events: none;
-    user-select: none;
+      span {
+        font-size: 14px;
+        line-height: 20px;
+        font-weight: bold;
+        user-select: none;
+      }
+    }
+
+    .node-sockets-container {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      box-sizing: border-box;
+
+      .node-socket-line {
+        display: flex;
+        justify-content: space-between;
+
+        &.right-align {
+          justify-content: flex-end;
+        }
+      }
+
+      .node-socket {
+        display: flex;
+        flex-direction: row;
+        gap: 8px;
+        align-items: center;
+
+        .socket {
+          width: 12px;
+          height: 12px;
+          border-radius: 100%;
+          border: 1px solid var(--border);
+          transition: transform 0.1s ease-out;
+
+          &:hover {
+            transform: scale(1.3);
+          }
+        }
+
+        span {
+          color: var(--alt-text);
+          font-size: 12px;
+          line-height: 16px;
+        }
+      }
+    }
   }
 </style>

@@ -3,7 +3,9 @@ import { type SocketType, type NodeType, Nodes } from "./Nodes";
 import { generateCode } from "./CodeGen";
 import { cleanLayout } from "./GraphCleaner";
 
-export const GRAPH_NODE_WIDTH = 120;
+export const GRAPH_NODE_WIDTH = 224;
+export const GRAPH_NODE_HEADER_HEIGHT = 40;
+export const GRAPH_NODE_SOCKET_HEIGHT = 16;
 export const GRAPH_NODE_HEIGHT = 40;
 
 export type NodeId = string;

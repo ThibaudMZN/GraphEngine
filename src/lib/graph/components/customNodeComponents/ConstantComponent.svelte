@@ -23,22 +23,19 @@
   const sizeY = 32;
 </script>
 
-<foreignObject
-  x={node.position.x - sizeX / 2}
-  y={node.position.y - sizeY / 2}
-  width={sizeX}
-  height={sizeY}
->
-  <input type="number" onchange={() => updateParameter()} bind:value />
-</foreignObject>
+<input type="number" onchange={() => updateParameter()} bind:value />
 
 <style>
   input {
-    width: 100%;
-    height: 100%;
-    text-align: center;
-    padding: 0;
-    margin: 0;
+    color: var(--alt-text);
+    font-size: 12px;
+    line-height: 16px;
+    border: none;
     box-sizing: border-box;
+    background: var(--border);
+    border-radius: 4px;
+    margin: 0;
+    max-height: 16px;
+    max-width: 72px;
   }
 </style>

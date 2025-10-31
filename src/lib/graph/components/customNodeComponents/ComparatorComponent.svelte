@@ -14,7 +14,7 @@
 
   let { node, id }: Props = $props();
 
-  let value: string = $state(node.parameters?.value ?? ">"); //TODO: we have a problem here, maybe because of HTML entities ?
+  let value: string = $state(node.parameters?.comparator ?? ">");
 
   const updateParameter = async () => {
     await graphStore.updateParameter(id, "comparator", value);
@@ -23,25 +23,23 @@
   const sizeY = 32;
 </script>
 
-<foreignObject
-  x={node.position.x - sizeX / 2}
-  y={node.position.y - sizeY / 2}
-  width={sizeX}
-  height={sizeY}
->
-  <select onchange={() => updateParameter()} bind:value>
-    <option value=">">{">"}</option>
-    <option value=">=">≥</option>
-    <option value="<">{"<"}</option>
-    <option value="<=">≤</option>
-    <option value="===">=</option>
-  </select>
-</foreignObject>
+<select onchange={() => updateParameter()} bind:value>
+  <option value=">">{">"}</option>
+  <option value=">=">≥</option>
+  <option value="<">{"<"}</option>
+  <option value="<=">≤</option>
+  <option value="===">=</option>
+</select>
 
 <style>
   select {
-    width: 100%;
-    height: 100%;
-    text-align: center;
+    color: var(--alt-text);
+    font-size: 12px;
+    line-height: 16px;
+    border: none;
+    background: var(--border);
+    border-radius: 4px;
+    margin: 0;
+    max-height: 16px;
   }
 </style>

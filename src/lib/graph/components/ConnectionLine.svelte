@@ -5,6 +5,8 @@
     GRAPH_NODE_WIDTH,
     type NodeInstance,
     graphStore,
+    GRAPH_NODE_SOCKET_HEIGHT,
+    GRAPH_NODE_HEADER_HEIGHT,
   } from "../GraphStore";
   import { SocketColors, Nodes } from "../Nodes";
 
@@ -28,16 +30,47 @@
     socket: "inputs" | "outputs",
   ) => {
     const targetSocket = socket === "outputs" ? "from" : "to";
+    // const nodeDetails = Nodes[node.type];
+    // const count = nodeDetails[socket]?.length || 0;
+    // const spacing = count > 1 ? GRAPH_NODE_HEIGHT / (count - 1) : 0;
+    // const index =
+    //   nodeDetails[socket]?.findIndex(
+    //     (i) => i.name === connection[targetSocket].name,
+    //   ) || 0;
+    // return count === 1
+    //   ? node.position.y
+    //   : node.position.y - GRAPH_NODE_HEIGHT / 2 + index * spacing;
     const nodeDetails = Nodes[node.type];
-    const count = nodeDetails[socket]?.length || 0;
-    const spacing = count > 1 ? GRAPH_NODE_HEIGHT / (count - 1) : 0;
+    // const count = nodeDetails[socket]?.length || 0;
+    // const socketsHeight = count * GRAPH_NODE_SOCKET_HEIGHT;
+    // const height = GRAPH_NODE_HEADER_HEIGHT + socketsHeight;
+    // const index =
+    //   nodeDetails[socket]?.findIndex(
+    //     (i) => i.name === connection[targetSocket].name,
+    //   ) || 0;
+
+    const nbSockets = Math.max(
+      nodeDetails.inputs?.length || 0,
+      nodeDetails.outputs?.length || 0,
+    );
+    const socketsHeight =
+      nbSockets * GRAPH_NODE_SOCKET_HEIGHT +
+      32 +
+      (nbSockets > 1 ? (nbSockets - 1) * 24 : 0);
+    const height = GRAPH_NODE_HEADER_HEIGHT + socketsHeight;
+
     const index =
       nodeDetails[socket]?.findIndex(
         (i) => i.name === connection[targetSocket].name,
       ) || 0;
-    return count === 1
-      ? node.position.y
-      : node.position.y - GRAPH_NODE_HEIGHT / 2 + index * spacing;
+
+    return (
+      node.position.y -
+      height / 2 +
+      GRAPH_NODE_HEADER_HEIGHT +
+      24 +
+      index * (32 + 2 + 6)
+    );
   };
 
   let points: BezierPoints = $derived.by(() => {
@@ -45,8 +78,8 @@
     const to = $graphStore.nodes[connection.to.id];
 
     // Let's assume "from" is always an output, and "to" always an input
-    const x1 = from.position.x + GRAPH_NODE_WIDTH / 2;
-    const x2 = to.position.x - GRAPH_NODE_WIDTH / 2;
+    const x1 = from.position.x + GRAPH_NODE_WIDTH / 2 - 24;
+    const x2 = to.position.x - GRAPH_NODE_WIDTH / 2 + 24;
 
     const y1 = getInputOutputPoint(from, "outputs");
     const y2 = getInputOutputPoint(to, "inputs");

@@ -27,24 +27,22 @@
   const sizeY = 32;
 </script>
 
-<foreignObject
-  x={node.position.x - sizeX / 2}
-  y={node.position.y - sizeY / 2}
-  width={sizeX}
-  height={sizeY}
->
-  <select onchange={() => updateParameter()} bind:value>
-    <option value="ArrowRight">⇨</option>
-    <option value="ArrowLeft">⇦</option>
-    <option value="ArrowUp">⇧</option>
-    <option value="ArrowDown">⇩</option>
-  </select>
-</foreignObject>
+<select onchange={() => updateParameter()} bind:value>
+  <option value="ArrowRight">⇨</option>
+  <option value="ArrowLeft">⇦</option>
+  <option value="ArrowUp">⇧</option>
+  <option value="ArrowDown">⇩</option>
+</select>
 
 <style>
   select {
-    width: 100%;
-    height: 100%;
-    text-align: center;
+    color: var(--alt-text);
+    font-size: 12px;
+    line-height: 16px;
+    border: none;
+    background: var(--border);
+    border-radius: 4px;
+    margin: 0;
+    max-height: 16px;
   }
 </style>

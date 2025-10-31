@@ -180,14 +180,26 @@ export const Nodes: Record<NodeType, Node> = {
 
 type Color = `#${string}`;
 export const SocketColors: Record<SocketType, Color> = {
-  flow: "#50ff50",
-  number: "#ff5050",
-  string: "#5050ff",
-  boolean: "#ffff50",
+  flow: "#60a5fa",
+  number: "#f87171",
+  string: "#facc15",
+  boolean: "#c084fc",
 };
 export const NodeColors: Record<NodeCategory, Color> = {
-  Action: "#ff5050",
-  Event: "#50ff50",
-  Logic: "#5050ff",
-  Data: "#ff0050",
+  Action: "#facc15",
+  Event: "#60a5fa",
+  Logic: "#c084fc",
+  Data: "#4ade80",
+};
+export const NodeHeaderColors: Record<NodeCategory, Color> = {
+  Action: "#ca8a04",
+  Event: "#2563eb",
+  Logic: "#9333ea",
+  Data: "#16a34a",
+};
+export const NodeIcons: Record<NodeCategory, string> = {
+  Action: "play-circle-line",
+  Event: "flashlight-line",
+  Logic: "cpu-line",
+  Data: "nft-line",
 };
