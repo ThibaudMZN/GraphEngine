@@ -38,7 +38,7 @@ export function createConnectionResolver(
       );
       if (!conn) {
         const node = graph.nodes[id];
-        return Nodes[node.type].parameters?.[socketName] ?? "undefined";
+        return node.parameters?.[socketName] ?? "undefined";
       }
       return createConnectionResolver(graph, visited).getExpressionForSocket(
         conn.from.id,

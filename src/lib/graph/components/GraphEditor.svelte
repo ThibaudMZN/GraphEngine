@@ -42,7 +42,7 @@
     selectedNodeOffset = { x: dx, y: dy };
   };
 
-  const handleMouseUp = (e: MouseEvent) => {
+  const handleMouseUp = async (e: MouseEvent) => {
     if (selectedConnection) {
       const elements = document.elementsFromPoint(e.clientX, e.clientY);
       const ports = elements.filter((el) => el.classList.contains("port"));
@@ -55,7 +55,7 @@
         const targetId = target.dataset.nodeId;
         const targetName = target.dataset.portName;
         if (targetId && targetName)
-          graphStore.addConnection(
+          await graphStore.addConnection(
             {
               id: selectedConnection.id,
               name: selectedConnection.connectionName,

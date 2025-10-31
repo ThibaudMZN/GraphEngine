@@ -1,5 +1,5 @@
 import { writable, derived, get } from "svelte/store";
-import { type SocketType, type NodeType } from "./Nodes";
+import { type SocketType, type NodeType, Nodes } from "./Nodes";
 import { generateCode } from "./CodeGen";
 import { cleanLayout } from "./GraphCleaner";
 
@@ -12,6 +12,7 @@ export type Vector2 = { x: number; y: number };
 export type NodeInstance = {
   type: NodeType;
   position: Vector2;
+  parameters?: Record<string, any>;
 };
 
 type ConnectionPoint = {
@@ -97,6 +98,11 @@ const { subscribe, update } = writable<GraphState>(
   savedGraphString ? JSON.parse(savedGraphString) : defaultGraph,
 );
 
+const { subscribe: generatedCodeSubscribe, set: generatedCodeSet } =
+  writable<string>("");
+const updateGeneratedCode = async () =>
+  generatedCodeSet(await generateCode(get(graphStore)));
+
 export const graphStore = {
   subscribe,
   setNodePosition: (id: NodeId, position: Vector2) => {
@@ -108,8 +114,13 @@ export const graphStore = {
   addNode: (type: NodeType, position: Vector2) => {
     const ids = Object.keys(get(graphStore).nodes).map((s) => parseInt(s));
     const newId = Math.max(...ids) + 1;
+    const defaultParameters = Nodes[type].parameters;
     update((actual) => {
-      actual.nodes[newId] = { type, position };
+      actual.nodes[newId] = {
+        type,
+        position,
+        ...(defaultParameters && { parameters: defaultParameters }),
+      };
       return actual;
     });
     return newId.toString() as NodeId;
@@ -126,7 +137,7 @@ export const graphStore = {
       return actual;
     });
   },
-  addConnection: (
+  addConnection: async (
     from: ConnectionPoint,
     to: ConnectionPoint,
     type: SocketType,
@@ -135,13 +146,17 @@ export const graphStore = {
       actual.connections = [...actual.connections, { from, to, type }];
       return actual;
     });
+
+    await updateGeneratedCode();
   },
-  deleteConnection: (connection: Connection) => {
+  deleteConnection: async (connection: Connection) => {
     update((actual) => {
       const index = actual.connections.findIndex((c) => c === connection);
       actual.connections.splice(index, 1);
       return actual;
     });
+
+    await updateGeneratedCode();
   },
   cleanGraph: () => {
     update((actual) => {
@@ -153,13 +168,11 @@ graphStore.subscribe((g) => {
   localStorage.setItem("graph", JSON.stringify(g));
 });
 
-export const generatedCodeStore = derived(
-  graphStore,
-  ($graph, set) => {
-    set("");
-    Promise.resolve(generateCode($graph)).then((value) => {
-      set(value);
-    });
-  },
-  "",
-);
+const unsubscribe = graphStore.subscribe(async (g) => {
+  await updateGeneratedCode();
+  unsubscribe();
+});
+
+export const generatedCodeStore = {
+  subscribe: generatedCodeSubscribe,
+};

@@ -76,5 +76,5 @@
   {stroke}
   stroke-width="2"
   stroke-linecap="round"
-  ondblclick={() => graphStore.deleteConnection(connection)}
+  ondblclick={async () => await graphStore.deleteConnection(connection)}
 />
