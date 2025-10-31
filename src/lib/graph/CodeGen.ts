@@ -1,6 +1,6 @@
 import { createConnectionResolver } from "./ConnectionResolver";
 import type { GraphState } from "./GraphStore";
-import { Nodes } from "./NodeTypes";
+import { Nodes } from "./Nodes";
 import { minify } from "terser";
 
 export async function generateCode(graph: GraphState): Promise<string> {

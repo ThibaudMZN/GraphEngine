@@ -4,7 +4,7 @@
   import javascript from "svelte-highlight/languages/javascript";
   import GraphEditor from "./lib/graph/components/GraphEditor.svelte";
   import { generatedCodeStore, graphStore } from "./lib/graph/GraphStore";
-  import { NodeColor, Nodes } from "./lib/graph/NodeTypes";
+  import { NodeColors, Nodes } from "./lib/graph/Nodes";
   import CanvasView from "./lib/engine/components/CanvasView.svelte";
 
   let graphEditorElement: GraphEditor | undefined = $state();
@@ -21,7 +21,7 @@
       <div
         class="draggable-node"
         draggable="true"
-        style="background: {NodeColor[node.category]}"
+        style="background: {NodeColors[node.category]}"
         ondragstart={(e) => {
           e.dataTransfer.setData("application/node-type", id);
           const dragImg = document.getElementById("dummy-img");

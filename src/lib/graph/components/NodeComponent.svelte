@@ -2,15 +2,15 @@
   import {
     GRAPH_NODE_HEIGHT,
     GRAPH_NODE_WIDTH,
-    type GraphNode,
+    type NodeInstance,
     graphStore,
     type NodeId,
     type Vector2,
   } from "../GraphStore";
-  import { Nodes, type Node, InOutColor, type InOutType } from "../NodeTypes";
+  import { Nodes, type Node, SocketColors, type SocketType } from "../Nodes";
 
   type Props = {
-    node: GraphNode;
+    node: NodeInstance;
     id: NodeId;
     handleMouseDown: (
       id: NodeId,
@@ -19,7 +19,7 @@
     handleConnectionClick: (
       initialPosition: Vector2,
       nodeId: NodeId,
-      connectionType: InOutType,
+      connectionType: SocketType,
       connectionName: string,
     ) => void;
   };
@@ -73,7 +73,7 @@
     {cx}
     {cy}
     r={4}
-    fill={InOutColor[input.type]}
+    fill={SocketColors[input.type]}
     role="button"
     tabindex="0"
     onmousedown={() =>
@@ -95,7 +95,7 @@
     {cx}
     {cy}
     r={4}
-    fill={InOutColor[output.type]}
+    fill={SocketColors[output.type]}
     role="button"
     tabindex="0"
     onmousedown={() =>

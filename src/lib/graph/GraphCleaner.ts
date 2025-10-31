@@ -1,7 +1,7 @@
 import {
   GRAPH_NODE_HEIGHT,
   GRAPH_NODE_WIDTH,
-  type GraphNode,
+  type NodeInstance,
   type GraphState,
   type NodeId,
 } from "./GraphStore";
@@ -63,7 +63,7 @@ export function cleanLayout(state: GraphState): GraphState {
   const spacingX = GRAPH_NODE_WIDTH * 1.3;
   const spacingY = GRAPH_NODE_HEIGHT * 2;
 
-  const newNodes: Record<NodeId, GraphNode> = {};
+  const newNodes: Record<NodeId, NodeInstance> = {};
 
   for (const [lvl, ids] of Object.entries(groups)) {
     ids.forEach((id, index) => {

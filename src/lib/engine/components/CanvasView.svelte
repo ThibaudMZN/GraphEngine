@@ -1,8 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { EngineRuntime } from "../runtime";
-  import { generateCode } from "../../graph/CodeGen";
-  import { generatedCodeStore, graphStore } from "../../graph/GraphStore";
+  import { generatedCodeStore } from "../../graph/GraphStore";
 
   let canvas: HTMLCanvasElement | undefined = $state();
   let engine: EngineRuntime | undefined = $state();
@@ -10,9 +9,8 @@
   const startEngine = async () => {
     if (!canvas) return;
     if (!engine) engine = new EngineRuntime(canvas);
-    const jsCode = await generateCode($graphStore);
 
-    await engine.loadScript(jsCode);
+    await engine.loadScript($generatedCodeStore);
     engine.init();
   };
 

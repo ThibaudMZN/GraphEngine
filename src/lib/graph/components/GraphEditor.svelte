@@ -2,7 +2,7 @@
   import { graphStore, type NodeId, type Vector2 } from "../GraphStore";
   import NodeComponent from "./NodeComponent.svelte";
   import ConnectionLine from "./ConnectionLine.svelte";
-  import { InOutColor, type InOutType } from "../NodeTypes";
+  import { SocketColors, type SocketType } from "../Nodes";
 
   let selectedNodeId: NodeId | undefined = $state();
   let selectedNodeOffset: Vector2 | undefined = $state();
@@ -11,7 +11,7 @@
   type ConnectionDetails = {
     startPosition: Vector2;
     endPosition: Vector2;
-    connectionType: InOutType;
+    connectionType: SocketType;
     connectionName: string;
     id: NodeId;
   };
@@ -88,7 +88,7 @@
   const handleConnectionClick = (
     initialPosition: Vector2,
     id: NodeId,
-    connectionType: InOutType,
+    connectionType: SocketType,
     connectionName: string,
   ) => {
     selectedConnection = {
@@ -153,7 +153,7 @@
     <path
       d={path}
       fill="none"
-      stroke={InOutColor[selectedConnection.connectionType]}
+      stroke={SocketColors[selectedConnection.connectionType]}
       stroke-width="2"
       stroke-linecap="round"
     />

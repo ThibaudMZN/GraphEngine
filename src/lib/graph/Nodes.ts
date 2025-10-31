@@ -1,20 +1,27 @@
 import type { NodeId } from "./GraphStore";
 import type { ConnectionResolver } from "./ConnectionResolver";
 
-export type InOutType = "flow" | "string" | "number";
+export type Socket = { name: string; type: SocketType };
+export type SocketType = "flow" | "string" | "number" | "boolean";
 
-type ParameterType = "number";
-
+export type NodeType =
+  | "OnStart"
+  | "OnUpdate"
+  | "If"
+  | "Input"
+  | "Constant"
+  | "Move"
+  | "Rotate";
+export type NodeCategory = "Event" | "Action" | "Logic" | "Data";
 export type Node = {
-  category: "Event" | "Action" | "Logic" | "Data";
   name: string;
-  outputs?: { name: string; type: InOutType }[];
-  inputs?: { name: string; type: InOutType }[];
+  category: NodeCategory;
+  outputs?: Socket[];
+  inputs?: Socket[];
   code: (id: NodeId, node: Node, connections: ConnectionResolver) => string;
   parameters?: Record<string, any>; //TODO: Parameters needs to be on the NodeInstance, not here. This should just be a list of name and type of parameters
 };
-
-export const Nodes: Record<string, Node> = {
+export const Nodes: Record<NodeType, Node> = {
   OnStart: {
     name: "On start",
     category: "Event",
@@ -36,14 +43,18 @@ export const Nodes: Record<string, Node> = {
   If: {
     name: "If",
     category: "Logic",
-    inputs: [{ name: "flow", type: "flow" }],
+    inputs: [
+      { name: "flow", type: "flow" },
+      { name: "condition", type: "boolean" },
+    ],
     outputs: [
       { name: "true", type: "flow" },
       { name: "false", type: "flow" },
     ],
     code: (id, node, connections) => {
+      const cond = connections.getExpressionForSocket(id, "condition");
       // const cond = node.params?.condition ?? "true";
-      const cond = 'ctx.input.keys["ArrowRight"]';
+      // const cond = 'ctx.input.keys["ArrowRight"]';
       const flowTrue = connections.flow(id, node, "true");
       const flowFalse = connections.flow(id, node, "false");
       return `
@@ -60,6 +71,13 @@ export const Nodes: Record<string, Node> = {
     category: "Data",
     parameters: { value: 10 },
     outputs: [{ name: "value", type: "number" }],
+    code: () => "",
+  },
+  Input: {
+    name: "Input",
+    category: "Data",
+    parameters: { value: 'ctx.input.keys["ArrowRight"]' },
+    outputs: [{ name: "value", type: "boolean" }],
     code: () => "",
   },
   Move: {
@@ -103,17 +121,14 @@ export const Nodes: Record<string, Node> = {
   },
 } as const;
 
-export type NodeTypes = keyof typeof Nodes;
-
 type Color = `#${string}`;
-
-export const InOutColor: Record<InOutType, Color> = {
+export const SocketColors: Record<SocketType, Color> = {
   flow: "#50ff50",
   number: "#ff5050",
   string: "#5050ff",
+  boolean: "#ffff50",
 };
-
-export const NodeColor: Record<Node["category"], Color> = {
+export const NodeColors: Record<NodeCategory, Color> = {
   Action: "#ff5050",
   Event: "#50ff50",
   Logic: "#5050ff",

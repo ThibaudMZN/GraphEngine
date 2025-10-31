@@ -1,4 +1,4 @@
-import { type Node, Nodes } from "./NodeTypes";
+import { type Node, Nodes } from "./Nodes";
 import type { GraphState, NodeId } from "./GraphStore";
 
 export type ConnectionResolver = {
@@ -37,10 +37,8 @@ export function createConnectionResolver(
         (c) => c.to.id === id && c.to.name === socketName,
       );
       if (!conn) {
-        // no data input connected: use default or literal param
         const node = graph.nodes[id];
         return Nodes[node.type].parameters?.[socketName] ?? "undefined";
-        // return 0;
       }
       return createConnectionResolver(graph, visited).getExpressionForSocket(
         conn.from.id,

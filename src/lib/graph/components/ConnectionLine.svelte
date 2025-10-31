@@ -3,14 +3,14 @@
     type Connection,
     GRAPH_NODE_HEIGHT,
     GRAPH_NODE_WIDTH,
-    type GraphNode,
+    type NodeInstance,
     graphStore,
   } from "../GraphStore";
-  import { InOutColor, Nodes } from "../NodeTypes";
+  import { SocketColors, Nodes } from "../Nodes";
 
   let { connection }: { connection: Connection } = $props();
 
-  const stroke = InOutColor[connection.type];
+  const stroke = SocketColors[connection.type];
 
   type BezierPoints = {
     x1: number;
@@ -24,7 +24,7 @@
   };
 
   const getInputOutputPoint = (
-    node: GraphNode,
+    node: NodeInstance,
     socket: "inputs" | "outputs",
   ) => {
     const targetSocket = socket === "outputs" ? "from" : "to";

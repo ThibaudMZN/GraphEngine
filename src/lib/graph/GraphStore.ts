@@ -1,13 +1,16 @@
 import { writable, derived, get } from "svelte/store";
-import { type InOutType, type NodeTypes } from "./NodeTypes";
+import { type SocketType, type NodeType } from "./Nodes";
 import { generateCode } from "./CodeGen";
 import { cleanLayout } from "./GraphCleaner";
+
+export const GRAPH_NODE_WIDTH = 120;
+export const GRAPH_NODE_HEIGHT = 40;
 
 export type NodeId = string;
 export type Vector2 = { x: number; y: number };
 
-export type GraphNode = {
-  type: NodeTypes;
+export type NodeInstance = {
+  type: NodeType;
   position: Vector2;
 };
 
@@ -16,17 +19,14 @@ type ConnectionPoint = {
   name: string;
 };
 
-export const GRAPH_NODE_WIDTH = 120;
-export const GRAPH_NODE_HEIGHT = 40;
-
 export type Connection = {
   from: ConnectionPoint;
   to: ConnectionPoint;
-  type: InOutType;
+  type: SocketType;
 };
 
 export type GraphState = {
-  nodes: Record<NodeId, GraphNode>;
+  nodes: Record<NodeId, NodeInstance>;
   connections: Connection[];
 };
 
@@ -93,7 +93,6 @@ const defaultGraph = {
 };
 
 const savedGraphString = localStorage.getItem("graph");
-
 const { subscribe, update } = writable<GraphState>(
   savedGraphString ? JSON.parse(savedGraphString) : defaultGraph,
 );
@@ -106,7 +105,7 @@ export const graphStore = {
       return actual;
     });
   },
-  addNode: (type: NodeTypes, position: Vector2) => {
+  addNode: (type: NodeType, position: Vector2) => {
     const ids = Object.keys(get(graphStore).nodes).map((s) => parseInt(s));
     const newId = Math.max(...ids) + 1;
     update((actual) => {
@@ -130,7 +129,7 @@ export const graphStore = {
   addConnection: (
     from: ConnectionPoint,
     to: ConnectionPoint,
-    type: InOutType,
+    type: SocketType,
   ) => {
     update((actual) => {
       actual.connections = [...actual.connections, { from, to, type }];
@@ -150,8 +149,9 @@ export const graphStore = {
     });
   },
 };
-
-// export const generatedCodeStore = derived(graphStore, ($graph) => generateCode($graph));
+graphStore.subscribe((g) => {
+  localStorage.setItem("graph", JSON.stringify(g));
+});
 
 export const generatedCodeStore = derived(
   graphStore,
@@ -163,7 +163,3 @@ export const generatedCodeStore = derived(
   },
   "",
 );
-
-graphStore.subscribe((g) => {
-  localStorage.setItem("graph", JSON.stringify(g));
-});
