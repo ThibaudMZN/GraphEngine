@@ -4,7 +4,7 @@ self.onmessage = (e) => {
   const { type, code, ctx, delta } = e.data;
 
   if (type === "load") {
-    console.log("👷‍♂️ Load");
+    // console.log("👷‍♂️ Load");
     try {
       const exports: any = {};
       const func = new Function("exports", code);
@@ -17,7 +17,7 @@ self.onmessage = (e) => {
   }
 
   if (type === "init" && gameModule?.init) {
-    console.log("👷‍♂️ Init");
+    // console.log("👷‍♂️ Init");
     try {
       gameModule.init(ctx);
       self.postMessage({ type: "inited", ctx });

@@ -158,6 +158,16 @@ export const graphStore = {
 
     await updateGeneratedCode();
   },
+  updateParameter: async (id: NodeId, key: string, value: any) => {
+    update((actual) => {
+      if (!actual.nodes[id].parameters)
+        throw new Error(`Cannot set parameter ${key} for node ${id}`);
+      actual.nodes[id].parameters[key] = value;
+      return actual;
+    });
+
+    await updateGeneratedCode();
+  },
   cleanGraph: () => {
     update((actual) => {
       return cleanLayout(actual);

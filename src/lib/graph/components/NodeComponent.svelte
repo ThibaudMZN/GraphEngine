@@ -7,7 +7,16 @@
     type NodeId,
     type Vector2,
   } from "../GraphStore";
-  import { Nodes, type Node, SocketColors, type SocketType } from "../Nodes";
+  import {
+    Nodes,
+    type Node,
+    SocketColors,
+    type SocketType,
+    type NodeType,
+  } from "../Nodes";
+  import type { Component } from "svelte";
+  import InputComponent from "./customNodeComponents/InputComponent.svelte";
+  import ConstantComponent from "./customNodeComponents/ConstantComponent.svelte";
 
   type Props = {
     node: NodeInstance;
@@ -25,6 +34,11 @@
   };
 
   let { node, id, handleMouseDown, handleConnectionClick }: Props = $props();
+
+  const customComponent: Partial<Record<NodeType, Component<any>>> = {
+    Input: InputComponent,
+    Constant: ConstantComponent,
+  } as const;
 
   const nodeDetails: Node = Nodes[node.type];
   const width = GRAPH_NODE_WIDTH;
@@ -49,15 +63,20 @@
     })}
   ondblclick={() => graphStore.deleteNode(id)}
 />
-<text
-  x={node.position.x}
-  y={node.position.y}
-  text-anchor="middle"
-  dominant-baseline="central"
-  fill="white"
->
-  {nodeDetails.name}
-</text>
+{#if customComponent[node.type]}
+  {@const CustomComponent = customComponent[node.type]}
+  <CustomComponent {node} {id} />
+{:else}
+  <text
+    x={node.position.x}
+    y={node.position.y}
+    text-anchor="middle"
+    dominant-baseline="central"
+    fill="white"
+  >
+    {nodeDetails.name}
+  </text>
+{/if}
 {#each nodeDetails.inputs as input, index}
   {@const count = nodeDetails.inputs?.length || 0}
   {@const spacing = count > 1 ? height / (count - 1) : 0}
