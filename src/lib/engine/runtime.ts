@@ -25,7 +25,7 @@ export class EngineRuntime {
     };
 
     this.ctx = {
-      objects: { player: { x: 50, y: 50 } },
+      objects: { player: { x: 50, y: 50, rotation: 0 } },
       input: { keys: {} },
     };
 
@@ -63,8 +63,14 @@ export class EngineRuntime {
   render() {
     const c = this.canvas.getContext("2d")!;
     c.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
     c.fillStyle = "skyblue";
     const player = this.ctx.objects.player;
-    c.fillRect(player.x, player.y, 50, 50);
+    c.save();
+    c.translate(player.x + 25, player.y + 25);
+    const radians = (player.rotation * Math.PI) / 180;
+    c.rotate(radians);
+    c.fillRect(-25, -25, 50, 50);
+    c.restore();
   }
 }

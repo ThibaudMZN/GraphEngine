@@ -112,7 +112,7 @@ export const Nodes: Record<NodeType, Node> = {
     code: (id, node, connections) => {
       const flowNext = connections.flow(id, node, "flow");
       const angle = parseInt(connections.getExpressionForSocket(id, "angle"));
-      const target = JSON.stringify("dummy");
+      const target = JSON.stringify("player");
       return `
                 ctx.objects[${target}].rotation += ${angle};
                 ${flowNext}
