@@ -17,6 +17,7 @@
   import type { Component } from "svelte";
   import InputComponent from "./customNodeComponents/InputComponent.svelte";
   import ConstantComponent from "./customNodeComponents/ConstantComponent.svelte";
+  import ComparatorComponent from "./customNodeComponents/ComparatorComponent.svelte";
 
   type Props = {
     node: NodeInstance;
@@ -38,6 +39,7 @@
   const customComponent: Partial<Record<NodeType, Component<any>>> = {
     Input: InputComponent,
     Constant: ConstantComponent,
+    Comparator: ComparatorComponent,
   } as const;
 
   const nodeDetails: Node = Nodes[node.type];

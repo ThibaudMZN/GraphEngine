@@ -2,7 +2,7 @@ import { type Node, Nodes } from "./Nodes";
 import type { GraphState, NodeId } from "./GraphStore";
 
 export type ConnectionResolver = {
-  flow: (id: NodeId, node: Node, outputName: string) => string;
+  flow: (id: NodeId, outputName: string) => string;
   getExpressionForSocket: (id: NodeId, socketName: string) => string;
 };
 
@@ -11,7 +11,7 @@ export function createConnectionResolver(
   visited = new Set<string>(),
 ): ConnectionResolver {
   return {
-    flow(id, _node, outputName) {
+    flow(id, outputName) {
       const conn = graph.connections.find(
         (c) => c.from.id === id && c.from.name === outputName,
       );
@@ -28,7 +28,7 @@ export function createConnectionResolver(
 
       return def.code(
         nextNode[0],
-        def,
+        nextNode[1],
         createConnectionResolver(graph, visited),
       );
     },

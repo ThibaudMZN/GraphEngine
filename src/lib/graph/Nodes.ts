@@ -1,4 +1,4 @@
-import type { NodeId } from "./GraphStore";
+import type { NodeId, NodeInstance } from "./GraphStore";
 import type { ConnectionResolver } from "./ConnectionResolver";
 
 export type Socket = { name: string; type: SocketType };
@@ -8,6 +8,7 @@ export type NodeType =
   | "OnStart"
   | "OnUpdate"
   | "If"
+  | "Comparator"
   | "Input"
   | "Constant"
   | "Move"
@@ -19,7 +20,11 @@ export type Node = {
   category: NodeCategory;
   outputs?: Socket[];
   inputs?: Socket[];
-  code: (id: NodeId, node: Node, connections: ConnectionResolver) => string;
+  code: (
+    id: NodeId,
+    node: NodeInstance,
+    connections: ConnectionResolver,
+  ) => string;
   parameters?: Record<string, any>;
 };
 export const Nodes: Record<NodeType, Node> = {
@@ -28,7 +33,7 @@ export const Nodes: Record<NodeType, Node> = {
     category: "Event",
     outputs: [{ name: "flow", type: "flow" }],
     code: (id, node, connections) => {
-      const flow = connections.flow(id, node, "flow");
+      const flow = connections.flow(id, "flow");
       return `function __onStart_${id}(ctx) {\n${flow}\n}`;
     },
   },
@@ -37,7 +42,7 @@ export const Nodes: Record<NodeType, Node> = {
     category: "Event",
     outputs: [{ name: "flow", type: "flow" }],
     code: (id, node, connections) => {
-      const flow = connections.flow(id, node, "flow");
+      const flow = connections.flow(id, "flow");
       return `function __onUpdate_${id}(ctx) {\n${flow}\n}`;
     },
   },
@@ -54,12 +59,39 @@ export const Nodes: Record<NodeType, Node> = {
     ],
     code: (id, node, connections) => {
       const cond = connections.getExpressionForSocket(id, "condition");
-      // const cond = node.params?.condition ?? "true";
-      // const cond = 'ctx.input.keys["ArrowRight"]';
-      const flowTrue = connections.flow(id, node, "true");
-      const flowFalse = connections.flow(id, node, "false");
+      const flowTrue = connections.flow(id, "true");
+      const flowFalse = connections.flow(id, "false");
       return `
         if (${cond}) {
+          ${flowTrue}
+        } else {
+          ${flowFalse}
+        }
+      `;
+    },
+  },
+  Comparator: {
+    name: "Comparator",
+    category: "Logic",
+    inputs: [
+      { name: "flow", type: "flow" },
+      { name: "A", type: "number" },
+      { name: "B", type: "number" },
+    ],
+    outputs: [
+      { name: "true", type: "flow" },
+      { name: "false", type: "flow" },
+    ],
+    parameters: { comparator: ">" },
+    code: (id, node, connections) => {
+      const a = connections.getExpressionForSocket(id, "A");
+      const b = connections.getExpressionForSocket(id, "B");
+      const comparator = node.parameters?.comparator;
+      if (!comparator) return "";
+      const flowTrue = connections.flow(id, "true");
+      const flowFalse = connections.flow(id, "false");
+      return `
+        if (${a} ${comparator} ${b}) {
           ${flowTrue}
         } else {
           ${flowFalse}
@@ -84,7 +116,7 @@ export const Nodes: Record<NodeType, Node> = {
   Position: {
     name: "Position",
     category: "Data",
-    parameters: { x: "ctx.objects['player'].x", y: "ctx.objects['player'].y" },
+    parameters: { x: 'ctx.objects["player"].x', y: 'ctx.objects["player"].y' },
     outputs: [
       { name: "x", type: "number" },
       { name: "y", type: "number" },
@@ -101,7 +133,7 @@ export const Nodes: Record<NodeType, Node> = {
     ],
     outputs: [{ name: "flow", type: "flow" }],
     code: (id, node, connections) => {
-      const flowNext = connections.flow(id, node, "flow");
+      const flowNext = connections.flow(id, "flow");
       const dx = connections.getExpressionForSocket(id, "dx") || 0;
       const dy = connections.getExpressionForSocket(id, "dy") || 0;
       const target = JSON.stringify("player");
@@ -121,7 +153,7 @@ export const Nodes: Record<NodeType, Node> = {
     ],
     outputs: [{ name: "flow", type: "flow" }],
     code: (id, node, connections) => {
-      const flowNext = connections.flow(id, node, "flow");
+      const flowNext = connections.flow(id, "flow");
       const angle = parseInt(connections.getExpressionForSocket(id, "angle"));
       const target = JSON.stringify("player");
       return `

@@ -14,9 +14,9 @@ export async function generateCode(graph: GraphState): Promise<string> {
     if (!type) continue;
 
     if (node.type === "OnStart") {
-      initCode += type.code(id, type, resolver) + "\n";
+      initCode += type.code(id, node, resolver) + "\n";
     } else if (node.type === "OnUpdate") {
-      updateCode += type.code(id, type, resolver) + "\n";
+      updateCode += type.code(id, node, resolver) + "\n";
     }
   }
 
