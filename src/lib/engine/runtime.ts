@@ -25,7 +25,10 @@ export class EngineRuntime {
     };
 
     this.ctx = {
-      objects: { player: { x: 50, y: 50, rotation: 0 } },
+      objects: {
+        player: { x: 50, y: 50, rotation: 0 },
+        screen: { width: canvas.width, height: canvas.height },
+      },
       input: { keys: {} },
     };
 

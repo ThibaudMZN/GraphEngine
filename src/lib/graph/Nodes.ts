@@ -13,6 +13,7 @@ export type NodeType =
   | "Constant"
   | "Move"
   | "Position"
+  | "Screen"
   | "Rotate";
 export type NodeCategory = "Event" | "Action" | "Logic" | "Data";
 export type Node = {
@@ -120,6 +121,19 @@ export const Nodes: Record<NodeType, Node> = {
     outputs: [
       { name: "x", type: "number" },
       { name: "y", type: "number" },
+    ],
+    code: () => "",
+  },
+  Screen: {
+    name: "Screen",
+    category: "Data",
+    parameters: {
+      width: 'ctx.objects["screen"].width',
+      height: 'ctx.objects["screen"].height',
+    },
+    outputs: [
+      { name: "width", type: "number" },
+      { name: "height", type: "number" },
     ],
     code: () => "",
   },
