@@ -45,82 +45,84 @@
   const height = GRAPH_NODE_HEIGHT;
 </script>
 
-<rect
-  x={node.position.x - width / 2}
-  y={node.position.y - height / 2}
-  {width}
-  {height}
-  fill="black"
-  stroke="white"
-  role="button"
-  tabindex="0"
-  rx="4"
-  aria-label={nodeDetails.name}
-  onmousedown={(e) =>
-    handleMouseDown(id, {
-      mousePosition: { x: e.clientX, y: e.clientY },
-      nodePosition: { x: node.position.x, y: node.position.y },
-    })}
-  ondblclick={() => graphStore.deleteNode(id)}
-/>
-{#if customComponent[node.type]}
-  {@const CustomComponent = customComponent[node.type]}
-  <CustomComponent {node} {id} />
-{:else}
-  <text
-    x={node.position.x}
-    y={node.position.y}
-    text-anchor="middle"
-    dominant-baseline="central"
-    fill="white"
-  >
-    {nodeDetails.name}
-  </text>
-{/if}
-{#each nodeDetails.inputs as input, index}
-  {@const count = nodeDetails.inputs?.length || 0}
-  {@const spacing = count > 1 ? height / (count - 1) : 0}
-  {@const cy =
-    count === 1
-      ? node.position.y
-      : node.position.y - height / 2 + index * spacing}
-  {@const cx = node.position.x - width / 2}
-  <circle
-    class="port input-port"
-    data-node-id={id}
-    data-port-name={input.name}
-    {cx}
-    {cy}
-    r={4}
-    fill={SocketColors[input.type]}
+<g {id}>
+  <rect
+    x={node.position.x - width / 2}
+    y={node.position.y - height / 2}
+    {width}
+    {height}
+    fill="black"
+    stroke="white"
     role="button"
     tabindex="0"
-    onmousedown={() =>
-      handleConnectionClick({ x: cx, y: cy }, id, input.type, input.name)}
+    rx="4"
+    aria-label={nodeDetails.name}
+    onmousedown={(e) =>
+      handleMouseDown(id, {
+        mousePosition: { x: e.clientX, y: e.clientY },
+        nodePosition: { x: node.position.x, y: node.position.y },
+      })}
+    ondblclick={() => graphStore.deleteNode(id)}
   />
-{/each}
-{#each nodeDetails.outputs as output, index}
-  {@const count = nodeDetails.outputs?.length || 0}
-  {@const spacing = count > 1 ? height / (count - 1) : 0}
-  {@const cy =
-    count === 1
-      ? node.position.y
-      : node.position.y - height / 2 + index * spacing}
-  {@const cx = node.position.x + width / 2}
-  <circle
-    class="port output-port"
-    data-node-id={id}
-    data-port-name={output.name}
-    {cx}
-    {cy}
-    r={4}
-    fill={SocketColors[output.type]}
-    role="button"
-    tabindex="0"
-    onmousedown={() =>
-      handleConnectionClick({ x: cx, y: cy }, id, output.type, output.name)}
-  />
-{/each}
+  {#if customComponent[node.type]}
+    {@const CustomComponent = customComponent[node.type]}
+    <CustomComponent {node} {id} />
+  {:else}
+    <text
+      x={node.position.x}
+      y={node.position.y}
+      text-anchor="middle"
+      dominant-baseline="central"
+      fill="white"
+    >
+      {nodeDetails.name}
+    </text>
+  {/if}
+  {#each nodeDetails.inputs as input, index}
+    {@const count = nodeDetails.inputs?.length || 0}
+    {@const spacing = count > 1 ? height / (count - 1) : 0}
+    {@const cy =
+      count === 1
+        ? node.position.y
+        : node.position.y - height / 2 + index * spacing}
+    {@const cx = node.position.x - width / 2}
+    <circle
+      class="port input-port"
+      data-node-id={id}
+      data-port-name={input.name}
+      {cx}
+      {cy}
+      r={4}
+      fill={SocketColors[input.type]}
+      role="button"
+      tabindex="0"
+      onmousedown={() =>
+        handleConnectionClick({ x: cx, y: cy }, id, input.type, input.name)}
+    />
+  {/each}
+  {#each nodeDetails.outputs as output, index}
+    {@const count = nodeDetails.outputs?.length || 0}
+    {@const spacing = count > 1 ? height / (count - 1) : 0}
+    {@const cy =
+      count === 1
+        ? node.position.y
+        : node.position.y - height / 2 + index * spacing}
+    {@const cx = node.position.x + width / 2}
+    <circle
+      class="port output-port"
+      data-node-id={id}
+      data-port-name={output.name}
+      {cx}
+      {cy}
+      r={4}
+      fill={SocketColors[output.type]}
+      role="button"
+      tabindex="0"
+      onmousedown={() =>
+        handleConnectionClick({ x: cx, y: cy }, id, output.type, output.name)}
+    />
+  {/each}
+</g>
 
 <style>
   circle {

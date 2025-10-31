@@ -2,7 +2,7 @@
   import { graphStore, type NodeId, type Vector2 } from "../GraphStore";
   import NodeComponent from "./NodeComponent.svelte";
   import ConnectionLine from "./ConnectionLine.svelte";
-  import { SocketColors, type SocketType } from "../Nodes";
+  import { type NodeType, SocketColors, type SocketType } from "../Nodes";
 
   let selectedNodeId: NodeId | undefined = $state();
   let selectedNodeOffset: Vector2 | undefined = $state();
@@ -18,14 +18,25 @@
   let selectedConnection: ConnectionDetails | undefined = $state();
 
   let isDraggingNewNode: boolean = $state(false);
+  let zoom: number = $state(1);
+  let pan: Vector2 = $state({ x: 0, y: 0 });
+  let isPanning: boolean = $state(false);
+  let lastMouse: Vector2 = $state({ x: 0, y: 0 });
 
   const svgProjection = (x: number, y: number): Vector2 => {
     if (!svgElement) return { x: 0, y: 0 };
     const pt = svgElement.createSVGPoint();
     pt.x = x;
     pt.y = y;
-    const svgCoords = pt.matrixTransform(svgElement.getScreenCTM()?.inverse());
-    return { x: svgCoords.x, y: svgCoords.y };
+
+    const svgCTM = svgElement.getScreenCTM()?.inverse();
+    if (!svgCTM) return { x: 0, y: 0 };
+    const svgPoint = pt.matrixTransform(svgCTM);
+
+    const graphX = (svgPoint.x - pan.x) / zoom;
+    const graphY = (svgPoint.y - pan.y) / zoom;
+
+    return { x: graphX, y: graphY };
   };
 
   const handleMouseDown = (
@@ -49,7 +60,7 @@
       if (ports[0]) {
         //TODO: We should check if port types match and also make sure we only do In/Out Connection
         //TODO: We should always create connection with From(Output)-To(Input)
-        //TODO: We should prevent connection if port is already connected (Single connection for now)
+        //TODO: We should prevent connection if its a flow port and it is already connected (Single connection for now)
 
         const target = ports[0] as HTMLElement;
         const targetId = target.dataset.nodeId;
@@ -70,9 +81,20 @@
     selectedNodeOffset = undefined;
     selectedConnection = undefined;
     isDraggingNewNode = false;
+    isPanning = false;
   };
 
   const handleMouseMove = (e: MouseEvent) => {
+    if (isPanning) {
+      const dx = e.clientX - lastMouse.x;
+      const dy = e.clientY - lastMouse.y;
+
+      pan.x += dx;
+      pan.y += dy;
+
+      lastMouse = { x: e.clientX, y: e.clientY };
+      return;
+    }
     if (selectedNodeId && selectedNodeOffset) {
       const { x, y } = svgProjection(
         e.clientX - selectedNodeOffset.x,
@@ -114,16 +136,41 @@
         isDraggingNewNode = true;
 
         const position = svgProjection(e.clientX, e.clientY);
-        selectedNodeId = graphStore.addNode(nodeType, position);
+        selectedNodeId = graphStore.addNode(nodeType as NodeType, position);
         selectedNodeOffset = { x: 0, y: 0 };
       }
     }
   };
 
   export const triggerDragEnd = (e: MouseEvent) => handleMouseUp(e);
+
+  const handleMouseWheel = (e: WheelEvent) => {
+    if (!svgElement) return;
+    e.preventDefault();
+
+    const zoomFactor = 1.05;
+    const direction = e.deltaY < 0 ? 1 : -1;
+    const scale = direction > 0 ? zoomFactor : 1 / zoomFactor;
+
+    const cursor = svgProjection(e.clientX, e.clientY);
+
+    pan.x = cursor.x - scale * (cursor.x - pan.x);
+    pan.y = cursor.y - scale * (cursor.y - pan.y);
+    zoom *= scale;
+    zoom = Math.min(Math.max(zoom, 0.2), 4);
+  };
+
+  const handleLocalMouseDown = (e: MouseEvent) => {
+    if (e.button === 1 || e.shiftKey) {
+      // middle click or shift + drag
+      isPanning = true;
+      lastMouse = { x: e.clientX, y: e.clientY };
+    }
+  };
 </script>
 
 <svelte:window onmouseup={handleMouseUp} onmousemove={handleMouseMove} />
+<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 <svg
   xmlns="http://www.w3.org/2000/svg"
   width="800"
@@ -131,37 +178,46 @@
   role="graphics-document"
   bind:this={svgElement}
   ondragover={handleDragover}
+  onwheel={handleMouseWheel}
+  onmousedown={handleLocalMouseDown}
+  class:is-panning={isPanning}
 >
-  {#each $graphStore.connections as connection (`${connection.from.id}-${connection.to.id}-${connection.from.name}-${connection.to.name}`)}
-    <ConnectionLine {connection} />
-  {/each}
-  {#each Object.entries($graphStore.nodes) as [id, node] (id)}
-    <NodeComponent {node} {id} {handleMouseDown} {handleConnectionClick} />
-  {/each}
-  {#if selectedConnection}
-    {@const x1 = selectedConnection.startPosition.x}
-    {@const y1 = selectedConnection.startPosition.y}
-    {@const x2 = selectedConnection.endPosition.x}
-    {@const y2 = selectedConnection.endPosition.y}
-    {@const dx = Math.abs(x2 - x1) * 0.5}
-    {@const multiplier = x1 < x2 ? 1 : -1}
-    {@const cx1 = x1 + multiplier * dx}
-    {@const cy1 = y1}
-    {@const cx2 = x2 - multiplier * dx}
-    {@const cy2 = y2}
-    {@const path = `M ${x1} ${y1} C ${cx1} ${cy1}, ${cx2} ${cy2}, ${x2} ${y2}`}
-    <path
-      d={path}
-      fill="none"
-      stroke={SocketColors[selectedConnection.connectionType]}
-      stroke-width="2"
-      stroke-linecap="round"
-    />
-  {/if}
+  <g transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
+    {#each $graphStore.connections as connection (`${connection.from.id}-${connection.to.id}-${connection.from.name}-${connection.to.name}`)}
+      <ConnectionLine {connection} />
+    {/each}
+    {#each Object.entries($graphStore.nodes) as [id, node] (id)}
+      <NodeComponent {node} {id} {handleMouseDown} {handleConnectionClick} />
+    {/each}
+    {#if selectedConnection}
+      {@const x1 = selectedConnection.startPosition.x}
+      {@const y1 = selectedConnection.startPosition.y}
+      {@const x2 = selectedConnection.endPosition.x}
+      {@const y2 = selectedConnection.endPosition.y}
+      {@const dx = Math.abs(x2 - x1) * 0.5}
+      {@const multiplier = x1 < x2 ? 1 : -1}
+      {@const cx1 = x1 + multiplier * dx}
+      {@const cy1 = y1}
+      {@const cx2 = x2 - multiplier * dx}
+      {@const cy2 = y2}
+      {@const path = `M ${x1} ${y1} C ${cx1} ${cy1}, ${cx2} ${cy2}, ${x2} ${y2}`}
+      <path
+        d={path}
+        fill="none"
+        stroke={SocketColors[selectedConnection.connectionType]}
+        stroke-width="2"
+        stroke-linecap="round"
+      />
+    {/if}
+  </g>
 </svg>
 
 <style>
   svg {
     border: 1px solid white;
+  }
+
+  svg.is-panning {
+    cursor: grab;
   }
 </style>
