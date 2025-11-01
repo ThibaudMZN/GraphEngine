@@ -93,7 +93,10 @@
       })}
     ondblclick={async () => await graphStore.deleteNode(id)}
   >
-    <div class="node-container">
+    <div
+      class="node-container"
+      class:selected={$graphStore.selectedNodes.includes(id)}
+    >
       <div
         class="node-header"
         style="background: {NodeHeaderColors[nodeDetails.category]};"
@@ -184,6 +187,10 @@
     background: var(--background);
     overflow: hidden;
     cursor: pointer;
+
+    &.selected {
+      border: 1px solid var(--alt-text);
+    }
 
     .node-header {
       padding: 8px 16px;

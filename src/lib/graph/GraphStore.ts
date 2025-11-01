@@ -31,6 +31,7 @@ export type Connection = {
 export type GraphState = {
   nodes: Record<NodeId, NodeInstance>;
   connections: Connection[];
+  selectedNodes: NodeId[];
 };
 
 const id1 = "1";
@@ -93,6 +94,7 @@ const defaultGraph = {
       type: "number",
     },
   ],
+  selectedNodes: [],
 };
 
 const savedGraphString = localStorage.getItem("graph");
@@ -175,6 +177,12 @@ export const graphStore = {
   cleanGraph: () => {
     update((actual) => {
       return cleanLayout(actual);
+    });
+  },
+  selectNodes: (nodes: NodeId[]) => {
+    update((actual) => {
+      actual.selectedNodes = [...nodes];
+      return actual;
     });
   },
 };
