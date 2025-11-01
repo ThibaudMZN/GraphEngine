@@ -15,7 +15,8 @@ export type NodeType =
   | "Position"
   | "Screen"
   | "Rotate";
-export type NodeCategory = "Event" | "Action" | "Logic" | "Data";
+export const NodeCategories = ["Event", "Logic", "Action", "Data"] as const;
+export type NodeCategory = (typeof NodeCategories)[number];
 export type Node = {
   name: string;
   category: NodeCategory;
@@ -198,8 +199,8 @@ export const NodeHeaderColors: Record<NodeCategory, Color> = {
   Data: "#16a34a",
 };
 export const NodeIcons: Record<NodeCategory, string> = {
-  Action: "play-circle-line",
   Event: "flashlight-line",
   Logic: "cpu-line",
+  Action: "play-circle-line",
   Data: "nft-line",
 };

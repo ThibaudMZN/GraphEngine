@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { graphStore } from "../GraphStore";
   import {
+    NodeCategories,
     type NodeCategory,
     NodeColors,
+    NodeHeaderColors,
     NodeIcons,
     Nodes,
-    type NodeType,
   } from "../Nodes";
   import GraphEditor from "./GraphEditor.svelte";
 
@@ -13,31 +13,56 @@
     graphEditorElement: GraphEditor | undefined;
   }
 
-  let { graphEditorElement } = $props();
+  let { graphEditorElement }: Props = $props();
+  let openedCategory: NodeCategory | undefined = $state();
 </script>
 
+<!--<svelte:window onclick={(e) => console.log(e.currentTarget)} />-->
 <div class="toolbar">
   <!-- svelte-ignore a11y_missing_attribute -->
   <img
     id="dummy-img"
     src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
   />
-  <!--  <button onclick={() => graphStore.cleanGraph()}>Clean</button>-->
-  {#each Object.entries(Nodes) as [id, node]}
-    <!-- svelte-ignore a11y_no_static_element_interactions -->
-    <div
-      class="draggable-node"
-      draggable="true"
-      style="color: {NodeColors[node.category]}; font-size: 18px"
-      ondragstart={(e) => {
-        e.dataTransfer?.setData("application/node-type", id);
-        const dragImg = document.getElementById("dummy-img");
-        if (dragImg) e.dataTransfer?.setDragImage(dragImg, 0, 0);
-      }}
-      ondragend={(e) => graphEditorElement?.triggerDragEnd(e)}
-      title={node.name}
-    >
-      <i class="ri-{NodeIcons[node.category]}"></i>
+  {#each NodeCategories as category}
+    {@const active = openedCategory === category}
+    <div class="side-menu-container">
+      <button
+        title={category}
+        onclick={() => {
+          if (openedCategory !== category) openedCategory = category;
+          else openedCategory = undefined;
+        }}
+        class:active
+      >
+        <i
+          class="ri-{NodeIcons[category]}"
+          style="color: {NodeColors[category]}; font-size: 24px"
+        ></i>
+      </button>
+      {#if active}
+        <div class="floating-menu-container">
+          <span><b>{category}</b></span>
+          <div class="node-container">
+            {#each Object.entries(Nodes).filter(([type, node]) => node.category === category) as [id, node] (id)}
+              <!-- svelte-ignore a11y_no_static_element_interactions -->
+              <div
+                class="draggable-node"
+                draggable="true"
+                style="background: {NodeHeaderColors[node.category]};"
+                ondragstart={(e) => {
+                  e.dataTransfer?.setData("application/node-type", id);
+                  const dragImg = document.getElementById("dummy-img");
+                  if (dragImg) e.dataTransfer?.setDragImage(dragImg, 0, 0);
+                }}
+                ondragend={(e) => graphEditorElement?.triggerDragEnd(e)}
+              >
+                <span>{node.name}</span>
+              </div>
+            {/each}
+          </div>
+        </div>
+      {/if}
     </div>
   {/each}
 </div>
@@ -53,25 +78,61 @@
     padding: 16px;
     display: flex;
     flex-direction: column;
-    width: 80px;
-    gap: 8px;
+    gap: 24px;
     box-sizing: border-box;
     background: var(--background);
     border-right: 1px solid var(--border);
 
-    .draggable-node {
-      padding: 16px;
-      text-align: center;
-      cursor: move;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      max-height: 12px;
-      border-radius: 8px;
+    .side-menu-container {
+      position: relative;
 
-      &:hover {
-        background: var(--border);
+      button {
+        padding: 12px;
+        background: none;
+        outline: none;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+
+        &:hover {
+          background: #111827;
+        }
+
+        &.active {
+          background: var(--border);
+        }
       }
+
+      .floating-menu-container {
+        position: absolute;
+        top: 0;
+        right: -24px;
+        padding: 8px 16px;
+        background: var(--background);
+        border: 1px solid var(--border);
+        transform: translateX(100%);
+        z-index: 1;
+        border-radius: 8px;
+        white-space: nowrap;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+
+        .node-container {
+          display: flex;
+          gap: 8px;
+        }
+      }
+    }
+
+    .draggable-node {
+      padding: 2px 4px;
+      width: fit-content;
+      font-size: 12px;
+      line-height: 16px;
+      font-weight: 600;
+      cursor: move;
+      border-radius: 8px;
     }
   }
 </style>
