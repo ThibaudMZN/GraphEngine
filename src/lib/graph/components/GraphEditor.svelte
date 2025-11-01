@@ -19,6 +19,7 @@
     endPosition: Vector2;
     connectionType: SocketType;
     connectionName: string;
+    connectionDirection: "input" | "output";
     id: NodeId;
   };
   let selectedConnection: ConnectionDetails | undefined = $state();
@@ -64,22 +65,43 @@
       const elements = document.elementsFromPoint(e.clientX, e.clientY);
       const ports = elements.filter((el) => el.classList.contains("socket"));
       if (ports[0]) {
-        //TODO: We should check if port types match and also make sure we only do In/Out Connection
-        //TODO: We should always create connection with From(Output)-To(Input)
-        //TODO: We should prevent connection if its a flow port and it is already connected (Single connection for now)
-
         const target = ports[0] as HTMLElement;
         const targetId = target.dataset.nodeId;
-        const targetName = target.dataset.portName;
-        if (targetId && targetName)
-          await graphStore.addConnection(
-            {
+        const { portName, portType, portDirection } = target.dataset;
+        if (targetId && portName && portType && portDirection) {
+          const isSameType = selectedConnection.connectionType === portType;
+          const isInOut =
+            selectedConnection.connectionDirection !== portDirection;
+          if (isSameType && isInOut) {
+            const a = {
               id: selectedConnection.id,
               name: selectedConnection.connectionName,
-            },
-            { id: targetId, name: targetName },
-            selectedConnection.connectionType,
-          );
+            };
+            const b = { id: targetId, name: portName };
+            const from =
+              selectedConnection.connectionDirection === "output" ? a : b;
+            const to =
+              selectedConnection.connectionDirection === "output" ? b : a;
+
+            const noConnectionFrom =
+              $graphStore.connections.find(
+                (c) => c.from.id === from.id && c.from.name === from.name,
+              ) === undefined;
+            const noConnectionTo =
+              $graphStore.connections.find(
+                (c) => c.to.id === to.id && c.to.name === to.name,
+              ) === undefined;
+            const canConnect =
+              portType === "flow" ? noConnectionFrom && noConnectionTo : true;
+
+            if (canConnect)
+              await graphStore.addConnection(
+                from,
+                to,
+                selectedConnection.connectionType,
+              );
+          }
+        }
       }
     }
 
@@ -117,6 +139,7 @@
     id: NodeId,
     connectionType: SocketType,
     connectionName: string,
+    connectionDirection: "input" | "output",
   ) => {
     const p = svgProjection(initialPosition.x, initialPosition.y);
     selectedConnection = {
@@ -124,6 +147,7 @@
       endPosition: p,
       connectionType,
       connectionName,
+      connectionDirection,
       id,
     };
   };

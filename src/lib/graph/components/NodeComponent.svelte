@@ -35,6 +35,7 @@
       nodeId: NodeId,
       connectionType: SocketType,
       connectionName: string,
+      connectionDirection: "input" | "output",
     ) => void;
   };
 
@@ -64,13 +65,14 @@
       currentTarget: EventTarget & HTMLDivElement;
     },
     socket: Socket,
+    direction: "input" | "output",
   ) => {
     e.preventDefault();
     e.stopPropagation();
     const pos = e.currentTarget.getBoundingClientRect();
     const x = pos.x + pos.width / 2;
     const y = pos.y + pos.height / 2;
-    handleConnectionClick({ x, y }, id, socket.type, socket.name);
+    handleConnectionClick({ x, y }, id, socket.type, socket.name, direction);
   };
 
   const capitalizeFirstLetter = (str: string) =>
@@ -100,7 +102,6 @@
         <i class="ri-{NodeIcons[nodeDetails.category]}"></i>
       </div>
       <div class="node-sockets-container">
-        <!-- TODO: We still need to find a way to instantiate custom components (for Input, Constant and Comparator) -->
         {#each nodeDetails.inputs as input, index (index)}
           <div class="node-socket-line">
             <div class="node-socket">
@@ -109,8 +110,10 @@
                 style="background: {SocketColors[input.type]}"
                 data-node-id={id}
                 data-port-name={input.name}
-                data-port-type="input"
-                onmousedown={(e) => handleLocalConnectionClick(e, input)}
+                data-port-direction="input"
+                data-port-type={input.type}
+                onmousedown={(e) =>
+                  handleLocalConnectionClick(e, input, "input")}
               ></div>
               <span>{capitalizeFirstLetter(input.name)}</span>
             </div>
@@ -123,8 +126,10 @@
                   style="background: {SocketColors[output.type]}"
                   data-node-id={id}
                   data-port-name={output.name}
-                  data-port-type="output"
-                  onmousedown={(e) => handleLocalConnectionClick(e, output)}
+                  data-port-direction="output"
+                  data-port-type={output.type}
+                  onmousedown={(e) =>
+                    handleLocalConnectionClick(e, output, "output")}
                 ></div>
               </div>
             {:else if customComponent[node.type]}
@@ -155,8 +160,10 @@
                   style="background: {SocketColors[output.type]}"
                   data-node-id={id}
                   data-port-name={output.name}
-                  data-port-type="output"
-                  onmousedown={(e) => handleLocalConnectionClick(e, output)}
+                  data-port-direction="output"
+                  data-port-type={output.type}
+                  onmousedown={(e) =>
+                    handleLocalConnectionClick(e, output, "output")}
                 ></div>
               </div>
             </div>
