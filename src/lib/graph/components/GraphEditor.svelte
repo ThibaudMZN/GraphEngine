@@ -294,6 +294,10 @@
       {/if}
     </g>
   </svg>
+  <div class="graph-infos">
+    <span>Nodes: {Object.keys($graphStore.nodes).length}</span>
+    <span>Connections: {$graphStore.connections.length}</span>
+  </div>
 </div>
 
 <style lang="scss">
@@ -301,10 +305,27 @@
     display: flex;
     flex-direction: column;
     border-right: 1px solid var(--border);
+    position: relative;
 
     span {
       font-size: 12px;
       line-height: 16px;
+    }
+
+    .graph-infos {
+      position: absolute;
+      bottom: 16px;
+      right: 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      line-height: 20px;
+      color: var(--alt-text);
+      padding: 9px 13px;
+      background: var(--background);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
     }
   }
 
