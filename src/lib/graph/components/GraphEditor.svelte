@@ -5,14 +5,19 @@
   import { type NodeType, SocketColors, type SocketType } from "../Nodes";
   import PanelTitlebar from "../../components/PanelTitlebar.svelte";
   import IconButton from "../../components/IconButton.svelte";
+  import { isInside, normalizeRect, type Rect } from "../Geometry";
 
-  const MIN_ZOOM = 0.5;
-  const MAX_ZOOM = 3;
+  const MIN_ZOOM = 0.25;
+  const MAX_ZOOM = 2;
   const ZOOM_FACTOR = 1.05;
 
   let selectedNodeId: NodeId | undefined = $state();
   let selectedNodeOffset: Vector2 | undefined = $state();
   let svgElement: SVGSVGElement | undefined = $state();
+  let marquee: Rect | undefined = $state();
+  let normalizedMarquee = $derived(
+    marquee ? normalizeRect(marquee) : undefined,
+  );
 
   type ConnectionDetails = {
     startPosition: Vector2;
@@ -105,11 +110,19 @@
       }
     }
 
+    if (normalizedMarquee) {
+      const selected = Object.entries($graphStore.nodes)
+        .filter(([_id, node]) => isInside(node.position, normalizedMarquee))
+        .map(([id]) => id);
+      graphStore.selectNodes(selected);
+    }
+
     selectedNodeId = undefined;
     selectedNodeOffset = undefined;
     selectedConnection = undefined;
     isDraggingNewNode = false;
     isPanning = false;
+    marquee = undefined;
   };
 
   const handleMouseMove = (e: MouseEvent) => {
@@ -122,15 +135,29 @@
 
       lastMouse = { x: e.clientX, y: e.clientY };
       return;
-    }
-    if (selectedNodeId && selectedNodeOffset) {
+    } else if (selectedNodeId && selectedNodeOffset) {
       let { x, y } = svgProjection(e.clientX, e.clientY);
       x -= selectedNodeOffset.x;
       y -= selectedNodeOffset.y;
+      const currentPosition = $graphStore.nodes[selectedNodeId].position;
+      const delta = { x: currentPosition.x - x, y: currentPosition.y - y };
       graphStore.setNodePosition(selectedNodeId, { x, y });
-    }
-    if (selectedConnection) {
+      if ($graphStore.selectedNodes.size > 0) {
+        for (const id of [...$graphStore.selectedNodes]) {
+          if (id === selectedNodeId) continue;
+          const currentPos = $graphStore.nodes[id].position;
+          graphStore.setNodePosition(id, {
+            x: currentPos.x - delta.x,
+            y: currentPos.y - delta.y,
+          });
+        }
+      }
+    } else if (selectedConnection) {
       selectedConnection.endPosition = svgProjection(e.clientX, e.clientY);
+    } else if (marquee) {
+      const { x, y } = svgProjection(e.clientX, e.clientY);
+      marquee.w = x - marquee.x;
+      marquee.h = y - marquee.y;
     }
   };
 
@@ -209,11 +236,26 @@
       // middle click or shift + drag
       isPanning = true;
       lastMouse = { x: e.clientX, y: e.clientY };
+    } else if (e.button === 0) {
+      const elements = document.elementsFromPoint(e.clientX, e.clientY);
+      if (elements.length && elements[0].id === "graph-background") {
+        const { x, y } = svgProjection(e.clientX, e.clientY);
+        marquee = { x, y, w: 0, h: 0 };
+      }
     }
+  };
+
+  const handleKeyDown = async (e: KeyboardEvent) => {
+    if (e.key.toLowerCase() === "a" && e.ctrlKey) graphStore.selectAll();
+    if (e.key === "Delete") await graphStore.deleteSelectedNodes();
   };
 </script>
 
-<svelte:window onmouseup={handleMouseUp} onmousemove={handleMouseMove} />
+<svelte:window
+  onmouseup={handleMouseUp}
+  onmousemove={handleMouseMove}
+  onkeydown={handleKeyDown}
+/>
 <div class="graph-container">
   <PanelTitlebar title="Graph Editor">
     <IconButton
@@ -264,6 +306,7 @@
       height="100%"
       fill="url(#grid)"
       transform={`translate(${pan.x % (20 * zoom)}, ${pan.y % (20 * zoom)})`}
+      id="graph-background"
     />
     <g transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
       {#each Object.entries($graphStore.nodes) as [id, node] (id)}
@@ -290,6 +333,19 @@
           stroke={SocketColors[selectedConnection.connectionType]}
           stroke-width="2"
           stroke-linecap="round"
+        />
+      {/if}
+      {#if normalizedMarquee}
+        <rect
+          x={normalizedMarquee.x}
+          y={normalizedMarquee.y}
+          width={normalizedMarquee.w}
+          height={normalizedMarquee.h}
+          stroke="#374151"
+          stroke-width="2"
+          rx="8"
+          ry="8"
+          fill="#37415122"
         />
       {/if}
     </g>

@@ -1,4 +1,4 @@
-import { writable, derived, get } from "svelte/store";
+import { writable, get } from "svelte/store";
 import { type SocketType, type NodeType, Nodes } from "./Nodes";
 import { generateCode } from "./CodeGen";
 import { cleanLayout } from "./GraphCleaner";
@@ -31,6 +31,7 @@ export type Connection = {
 export type GraphState = {
   nodes: Record<NodeId, NodeInstance>;
   connections: Connection[];
+  selectedNodes: Set<NodeId>;
 };
 
 const id1 = "1";
@@ -93,12 +94,22 @@ const defaultGraph = {
       type: "number",
     },
   ],
+  selectedNodes: new Set<NodeId>(),
 };
 
-const savedGraphString = localStorage.getItem("graph");
-const { subscribe, update } = writable<GraphState>(
-  savedGraphString ? JSON.parse(savedGraphString) : defaultGraph,
-);
+const loadGraph = (): GraphState => {
+  const savedGraphString = localStorage.getItem("graph");
+  if (!savedGraphString) return defaultGraph as GraphState;
+  else {
+    let g: GraphState = JSON.parse(savedGraphString);
+    return {
+      ...g,
+      selectedNodes: new Set<NodeId>(g.selectedNodes),
+    };
+  }
+};
+const graph = loadGraph();
+const { subscribe, update } = writable<GraphState>(graph);
 
 const { subscribe: generatedCodeSubscribe, set: generatedCodeSet } =
   writable<string>("");
@@ -177,9 +188,41 @@ export const graphStore = {
       return cleanLayout(actual);
     });
   },
+  selectNodes: (nodes: NodeId[]) => {
+    update((actual) => {
+      actual.selectedNodes = new Set(nodes);
+      return actual;
+    });
+  },
+  toggleNodeSelection: (id: NodeId) => {
+    update((actual) => {
+      if (actual.selectedNodes.has(id)) actual.selectedNodes.delete(id);
+      else actual.selectedNodes.add(id);
+      return actual;
+    });
+  },
+  selectAll: () => {
+    update((actual) => {
+      actual.selectedNodes = new Set(Object.keys(actual.nodes));
+      return actual;
+    });
+  },
+  deleteSelectedNodes: async () => {
+    const currentGraph = get(graphStore);
+    if (currentGraph.selectedNodes.size === 0) return;
+
+    const promises = [...currentGraph.selectedNodes].map((id: NodeId) =>
+      graphStore.deleteNode(id),
+    );
+    await Promise.all(promises);
+  },
 };
 graphStore.subscribe((g) => {
-  localStorage.setItem("graph", JSON.stringify(g));
+  const serialized = {
+    ...g,
+    selectedNodes: [...g.selectedNodes],
+  };
+  localStorage.setItem("graph", JSON.stringify(serialized));
 });
 
 const unsubscribe = graphStore.subscribe(async (g) => {

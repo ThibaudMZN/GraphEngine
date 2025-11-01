@@ -81,6 +81,7 @@
 
 <g {id}>
   <!-- svelte-ignore a11y_no_static_element_interactions -->
+  <!-- svelte-ignore a11y_click_events_have_key_events -->
   <foreignObject
     x={node.position.x - width / 2}
     y={node.position.y - height / 2}
@@ -92,8 +93,16 @@
         nodePosition: { x: node.position.x, y: node.position.y },
       })}
     ondblclick={async () => await graphStore.deleteNode(id)}
+    onclick={(e) => {
+      if (e.button === 0 && e.shiftKey) {
+        graphStore.toggleNodeSelection(id);
+      }
+    }}
   >
-    <div class="node-container">
+    <div
+      class="node-container"
+      class:selected={$graphStore.selectedNodes.has(id)}
+    >
       <div
         class="node-header"
         style="background: {NodeHeaderColors[nodeDetails.category]};"
@@ -184,6 +193,10 @@
     background: var(--background);
     overflow: hidden;
     cursor: pointer;
+
+    &.selected {
+      border: 1px solid var(--alt-text);
+    }
 
     .node-header {
       padding: 8px 16px;
