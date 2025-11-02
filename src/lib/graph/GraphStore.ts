@@ -2,6 +2,7 @@ import { writable, get } from "svelte/store";
 import { type SocketType, type NodeType, Nodes } from "./Nodes";
 import { generateCode } from "./CodeGen";
 import { cleanLayout } from "./GraphCleaner";
+import { tick } from "svelte";
 
 export const GRAPH_NODE_WIDTH = 224;
 export const GRAPH_NODE_HEADER_HEIGHT = 40;
@@ -236,4 +237,62 @@ const unsubscribe = graphStore.subscribe(async (g) => {
 
 export const generatedCodeStore = {
   subscribe: generatedCodeSubscribe,
+};
+
+export type Clipboard = {
+  nodes: Record<NodeId, NodeInstance>;
+  connections: Connection[];
+};
+
+export const copySelectedNodes = () => {
+  const g = get(graphStore);
+  const selected = [...g.selectedNodes];
+  if (!selected.length) return;
+
+  const nodes: Record<NodeId, NodeInstance> = Object.fromEntries(
+    selected.map((id: NodeId) => [id as NodeId, structuredClone(g.nodes[id])]),
+  );
+
+  const connections = g.connections.filter(
+    (c) => selected.includes(c.from.id) && selected.includes(c.to.id),
+  );
+
+  return { nodes, connections } as Clipboard;
+};
+
+export const pasteNodes = async (clipboard: Clipboard, offset: Vector2) => {
+  if (!clipboard) return;
+
+  const oldToNewIds: Record<NodeId, NodeId> = {};
+
+  for (const oldId in clipboard.nodes) {
+    const node = clipboard.nodes[oldId];
+    const newId = await graphStore.addNode(node.type, {
+      x: node.position.x + offset.x,
+      y: node.position.y + offset.y,
+    });
+    await tick();
+    if (node.parameters) {
+      for (const [key, value] of Object.entries(node.parameters)) {
+        await graphStore.updateParameter(newId, key, value);
+      }
+    }
+    oldToNewIds[oldId] = newId;
+  }
+
+  for (const conn of clipboard.connections) {
+    await graphStore.addConnection(
+      {
+        id: oldToNewIds[conn.from.id],
+        name: conn.from.name,
+      },
+      {
+        id: oldToNewIds[conn.to.id],
+        name: conn.to.name,
+      },
+      conn.type,
+    );
+  }
+
+  graphStore.selectNodes(Object.values(oldToNewIds));
 };

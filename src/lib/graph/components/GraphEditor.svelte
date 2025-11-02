@@ -1,5 +1,13 @@
 <script lang="ts">
-  import { graphStore, type NodeId, type Vector2 } from "../GraphStore";
+  import {
+    type Connection,
+    copySelectedNodes,
+    graphStore,
+    type NodeId,
+    type NodeInstance,
+    pasteNodes,
+    type Vector2,
+  } from "../GraphStore";
   import NodeComponent from "./NodeComponent.svelte";
   import ConnectionLine from "./ConnectionLine.svelte";
   import { type NodeType, SocketColors, type SocketType } from "../Nodes";
@@ -35,6 +43,9 @@
   let pan: Vector2 = $state({ x: 0, y: 0 });
   let isPanning: boolean = $state(false);
   let lastMouse: Vector2 = $state({ x: 0, y: 0 });
+  let clipboard:
+    | { nodes: Record<NodeId, NodeInstance>; connections: Connection[] }
+    | undefined = $state();
 
   $effect(() => {
     zoom;
@@ -267,6 +278,18 @@
   const handleKeyDown = async (e: KeyboardEvent) => {
     if (e.key.toLowerCase() === "a" && e.ctrlKey) graphStore.selectAll();
     if (e.key === "Delete") await graphStore.deleteSelectedNodes();
+    if (e.ctrlKey || e.metaKey) {
+      if (e.key.toLowerCase() === "c") {
+        clipboard = copySelectedNodes();
+        e.preventDefault();
+      }
+      if (e.key.toLowerCase() === "v") {
+        if (clipboard) {
+          await pasteNodes(clipboard, { x: 0, y: 100 });
+          e.preventDefault();
+        }
+      }
+    }
   };
 </script>
 
