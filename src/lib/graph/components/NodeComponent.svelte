@@ -23,6 +23,7 @@
   import ConstantComponent from "./customNodeComponents/ConstantComponent.svelte";
   import ComparatorComponent from "./customNodeComponents/ComparatorComponent.svelte";
   import OperatorComponent from "./customNodeComponents/OperatorComponent.svelte";
+  import DeltaOrAbsoluteComponent from "./customNodeComponents/DeltaOrAbsoluteComponent.svelte";
 
   type Props = {
     node: NodeInstance;
@@ -54,6 +55,8 @@
     Constant: { component: ConstantComponent, position: { x: 1, y: 1 } },
     Comparator: { component: ComparatorComponent, position: { x: 2, y: 3 } },
     Operator: { component: OperatorComponent, position: { x: 2, y: 2 } },
+    Move: { component: DeltaOrAbsoluteComponent, position: { x: 2, y: 2 } },
+    Rotate: { component: DeltaOrAbsoluteComponent, position: { x: 2, y: 2 } },
   } as const;
 
   const nodeDetails: Node = Nodes[node.type];

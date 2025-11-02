@@ -171,14 +171,18 @@ export const Nodes: Record<NodeType, Node> = {
       { name: "dy", type: "number" },
     ],
     outputs: [{ name: "flow", type: "flow" }],
+    parameters: {
+      mode: "delta",
+    },
     code: (id, node, connections) => {
       const flowNext = connections.flow(id, "flow");
       const dx = connections.getExpressionForSocket(id, "dx") || 0;
       const dy = connections.getExpressionForSocket(id, "dy") || 0;
       const target = JSON.stringify("player");
+      const operator = node.parameters?.mode === "delta" ? "+=" : "=";
       return `
-                ctx.objects[${target}].x += ${dx};
-                ctx.objects[${target}].y += ${dy};
+                ctx.objects[${target}].x ${operator} ${dx};
+                ctx.objects[${target}].y ${operator} ${dy};
                 ${flowNext}
             `;
     },
@@ -191,12 +195,16 @@ export const Nodes: Record<NodeType, Node> = {
       { name: "angle", type: "number" },
     ],
     outputs: [{ name: "flow", type: "flow" }],
+    parameters: {
+      mode: "delta",
+    },
     code: (id, node, connections) => {
       const flowNext = connections.flow(id, "flow");
-      const angle = parseInt(connections.getExpressionForSocket(id, "angle"));
+      const angle = connections.getExpressionForSocket(id, "angle") || 0;
       const target = JSON.stringify("player");
+      const operator = node.parameters?.mode === "delta" ? "+=" : "=";
       return `
-                ctx.objects[${target}].rotation += ${angle};
+                ctx.objects[${target}].rotation ${operator} ${angle};
                 ${flowNext}
             `;
     },
