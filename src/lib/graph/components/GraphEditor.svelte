@@ -179,7 +179,7 @@
     };
   };
 
-  const handleDragover = (e: DragEvent) => {
+  const handleDragover = async (e: DragEvent) => {
     const nodeType = e.dataTransfer?.getData("application/node-type");
     if (nodeType) {
       if (isDraggingNewNode) {
@@ -193,7 +193,10 @@
         isDraggingNewNode = true;
 
         const position = svgProjection(e.clientX, e.clientY);
-        selectedNodeId = graphStore.addNode(nodeType as NodeType, position);
+        selectedNodeId = await graphStore.addNode(
+          nodeType as NodeType,
+          position,
+        );
         selectedNodeOffset = { x: 0, y: 0 };
       }
     }

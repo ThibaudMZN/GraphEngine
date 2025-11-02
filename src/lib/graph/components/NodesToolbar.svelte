@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { slide } from "svelte/transition";
   import {
     NodeCategories,
     type NodeCategory,
@@ -41,7 +42,10 @@
         ></i>
       </button>
       {#if active}
-        <div class="floating-menu-container">
+        <div
+          class="floating-menu-container"
+          transition:slide={{ axis: "x", duration: 100 }}
+        >
           <span><b>{category}</b></span>
           <div class="node-container">
             {#each Object.entries(Nodes).filter(([type, node]) => node.category === category) as [id, node] (id)}
@@ -54,6 +58,9 @@
                   e.dataTransfer?.setData("application/node-type", id);
                   const dragImg = document.getElementById("dummy-img");
                   if (dragImg) e.dataTransfer?.setDragImage(dragImg, 0, 0);
+                  setTimeout(() => {
+                    openedCategory = undefined;
+                  }, 200);
                 }}
                 ondragend={(e) => graphEditorElement?.triggerDragEnd(e)}
               >

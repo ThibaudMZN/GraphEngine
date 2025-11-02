@@ -124,9 +124,9 @@ export const graphStore = {
       return actual;
     });
   },
-  addNode: (type: NodeType, position: Vector2) => {
+  addNode: async (type: NodeType, position: Vector2) => {
     const ids = Object.keys(get(graphStore).nodes).map((s) => parseInt(s));
-    const newId = Math.max(...ids) + 1;
+    const newId = ids.length ? Math.max(...ids) + 1 : 1;
     const defaultParameters = Nodes[type].parameters;
     update((actual) => {
       actual.nodes[newId] = {
@@ -136,6 +136,8 @@ export const graphStore = {
       };
       return actual;
     });
+    await updateGeneratedCode();
+
     return newId.toString() as NodeId;
   },
   deleteNode: async (id: string) => {
@@ -215,6 +217,8 @@ export const graphStore = {
       graphStore.deleteNode(id),
     );
     await Promise.all(promises);
+
+    await updateGeneratedCode();
   },
 };
 graphStore.subscribe((g) => {
