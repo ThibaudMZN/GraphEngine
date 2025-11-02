@@ -15,6 +15,7 @@ export type NodeType =
   | "Constant"
   | "Move"
   | "Position"
+  | "Size"
   | "Screen"
   | "Rotate";
 export const NodeCategories = ["Event", "Logic", "Action", "Data"] as const;
@@ -125,10 +126,26 @@ export const Nodes: Record<NodeType, Node> = {
   Position: {
     name: "Position",
     category: "Data",
-    parameters: { x: 'ctx.objects["player"].x', y: 'ctx.objects["player"].y' },
+    parameters: {
+      x: 'ctx.objects["player"].position.x',
+      y: 'ctx.objects["player"].position.y',
+    },
     outputs: [
       { name: "x", type: "number" },
       { name: "y", type: "number" },
+    ],
+    code: () => "",
+  },
+  Size: {
+    name: "Size",
+    category: "Data",
+    parameters: {
+      width: 'ctx.objects["player"].size.width',
+      height: 'ctx.objects["player"].size.height',
+    },
+    outputs: [
+      { name: "width", type: "number" },
+      { name: "height", type: "number" },
     ],
     code: () => "",
   },
@@ -154,8 +171,8 @@ export const Nodes: Record<NodeType, Node> = {
     name: "Screen",
     category: "Data",
     parameters: {
-      width: 'ctx.constants["screen"].width',
-      height: 'ctx.constants["screen"].height',
+      width: "ctx.constants.screen.width",
+      height: "ctx.constants.screen.height",
     },
     outputs: [
       { name: "width", type: "number" },
@@ -182,8 +199,8 @@ export const Nodes: Record<NodeType, Node> = {
       const target = JSON.stringify("player");
       const operator = node.parameters?.mode === "delta" ? "+=" : "=";
       return `
-                ctx.objects[${target}].x ${operator} ${dx};
-                ctx.objects[${target}].y ${operator} ${dy};
+                ctx.objects[${target}].position.x ${operator} ${dx};
+                ctx.objects[${target}].position.y ${operator} ${dy};
                 ${flowNext}
             `;
     },

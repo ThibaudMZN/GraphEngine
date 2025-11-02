@@ -1,6 +1,8 @@
+import type { Vector2 } from "../graph/GraphStore";
+
 type GameObject = {
-  x: number;
-  y: number;
+  position: Vector2;
+  size: { width: number; height: number };
   rotation: number;
 };
 
@@ -71,7 +73,11 @@ export class EngineRuntime {
   private initContext() {
     this.ctx = {
       objects: {
-        player: { x: 50, y: 50, rotation: 0 },
+        player: {
+          position: { x: 50, y: 50 },
+          rotation: 0,
+          size: { width: 50, height: 50 },
+        },
       },
       constants: {
         screen: { width: this.canvas.width, height: this.canvas.height },
@@ -106,10 +112,15 @@ export class EngineRuntime {
     c.fillStyle = "skyblue";
     const player = this.ctx.objects.player;
     c.save();
-    c.translate(player.x, player.y);
+    c.translate(player.position.x, player.position.y);
     const radians = (player.rotation * Math.PI) / 180;
     c.rotate(radians);
-    c.fillRect(-25, -25, 50, 50);
+    c.fillRect(
+      -player.size.width / 2,
+      -player.size.height / 2,
+      player.size.width,
+      player.size.height,
+    );
     c.restore();
   }
 }

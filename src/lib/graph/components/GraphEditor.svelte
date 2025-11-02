@@ -160,11 +160,12 @@
       if ($graphStore.selectedNodes.size > 0) {
         for (const id of [...$graphStore.selectedNodes]) {
           if (id === selectedNodeId) continue;
-          const currentPos = $graphStore.nodes[id].position;
-          graphStore.setNodePosition(id, {
-            x: currentPos.x - delta.x,
-            y: currentPos.y - delta.y,
-          });
+          const currentPos = $graphStore.nodes[id]?.position;
+          if (currentPos)
+            graphStore.setNodePosition(id, {
+              x: currentPos.x - delta.x,
+              y: currentPos.y - delta.y,
+            });
         }
       }
     } else if (selectedConnection) {
