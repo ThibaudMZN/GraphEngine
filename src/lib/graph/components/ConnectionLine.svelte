@@ -69,7 +69,8 @@
       height / 2 +
       GRAPH_NODE_HEADER_HEIGHT +
       24 +
-      index * (32 + 2 + 6)
+      index * (32 + 2 + 6) +
+      1
     );
   };
 
