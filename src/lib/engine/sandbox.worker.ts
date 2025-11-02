@@ -1,23 +1,29 @@
+import type { GameContext } from "./runtime";
+
 let gameModule: any = null;
 
-self.onmessage = (e) => {
+type RuntimeMessage = {
+  type: "load" | "init" | "update";
+  code?: string;
+  ctx: GameContext;
+  delta?: number;
+};
+
+self.onmessage = (e: MessageEvent<RuntimeMessage>) => {
   const { type, code, ctx, delta } = e.data;
 
-  if (type === "load") {
-    // console.log("👷‍♂️ Load");
+  if (type === "load" && code) {
     try {
       const exports: any = {};
       const func = new Function("exports", code);
       func(exports);
       gameModule = exports;
-      self.postMessage({ type: "ready" });
     } catch (err) {
       self.postMessage({ type: "error", error: err });
     }
   }
 
   if (type === "init" && gameModule?.init) {
-    // console.log("👷‍♂️ Init");
     try {
       gameModule.init(ctx);
       self.postMessage({ type: "inited", ctx });
@@ -27,7 +33,6 @@ self.onmessage = (e) => {
   }
 
   if (type === "update" && gameModule?.update) {
-    // console.log("👷‍♂️ Update");
     try {
       gameModule.update(ctx, delta);
       self.postMessage({ type: "updated", ctx });

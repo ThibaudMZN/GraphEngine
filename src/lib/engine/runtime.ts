@@ -1,9 +1,32 @@
+type GameObject = {
+  x: number;
+  y: number;
+  rotation: number;
+};
+
+export type GameContext = {
+  objects: Record<string, GameObject>;
+  constants: {
+    screen: {
+      width: number;
+      height: number;
+    };
+  };
+  input: { keys: Record<string, boolean> };
+  timers: {};
+};
+
+type WorkerMessage = {
+  type: "inited" | "updated" | "error";
+  error?: Error;
+  ctx: GameContext;
+};
+
 export class EngineRuntime {
-  ctx: Record<string, any> = {};
+  private ctx: GameContext;
   private worker: Worker;
   private canvas: HTMLCanvasElement;
   private lastTime = 0;
-  private ready = false;
   private running = false;
 
   constructor(canvas: HTMLCanvasElement) {
@@ -12,9 +35,8 @@ export class EngineRuntime {
       type: "module",
     });
 
-    this.worker.onmessage = (e) => {
+    this.worker.onmessage = (e: MessageEvent<WorkerMessage>) => {
       const { type, error, ctx } = e.data;
-      if (type === "ready") this.ready = true;
       if (type === "inited") {
         this.ctx = ctx;
         this.start();
@@ -25,7 +47,7 @@ export class EngineRuntime {
       if (type === "error") console.error("Sandbox error:", error);
     };
 
-    this.initContext();
+    this.ctx = this.initContext();
 
     window.addEventListener(
       "keydown",
@@ -38,7 +60,6 @@ export class EngineRuntime {
   }
 
   async loadScript(jsCode: string) {
-    this.ready = false;
     this.worker.postMessage({ type: "load", code: jsCode });
   }
 
@@ -58,6 +79,7 @@ export class EngineRuntime {
       input: { keys: {} },
       timers: {},
     };
+    return this.ctx;
   }
 
   start() {
@@ -84,7 +106,7 @@ export class EngineRuntime {
     c.fillStyle = "skyblue";
     const player = this.ctx.objects.player;
     c.save();
-    c.translate(player.x + 25, player.y + 25);
+    c.translate(player.x, player.y);
     const radians = (player.rotation * Math.PI) / 180;
     c.rotate(radians);
     c.fillRect(-25, -25, 50, 50);
