@@ -42,11 +42,18 @@
 
   let { node, id, handleMouseDown, handleConnectionClick }: Props = $props();
 
-  const customComponent: Partial<Record<NodeType, Component<any>>> = {
-    Input: InputComponent,
-    Constant: ConstantComponent,
-    Comparator: ComparatorComponent,
-    Operator: OperatorComponent,
+  type CustomComponent = {
+    component: Component<any>;
+    position: Vector2;
+  };
+  const customComponent: Partial<Record<NodeType, CustomComponent>> = {
+    Input: {
+      component: InputComponent,
+      position: { x: 1, y: 1 },
+    },
+    Constant: { component: ConstantComponent, position: { x: 1, y: 1 } },
+    Comparator: { component: ComparatorComponent, position: { x: 2, y: 3 } },
+    Operator: { component: OperatorComponent, position: { x: 2, y: 2 } },
   } as const;
 
   const nodeDetails: Node = Nodes[node.type];
@@ -79,6 +86,11 @@
 
   const capitalizeFirstLetter = (str: string) =>
     String(str).charAt(0).toUpperCase() + String(str).slice(1);
+
+  const nbRows = Math.max(
+    nodeDetails.inputs?.length || 0,
+    nodeDetails.outputs?.length || 0,
+  );
 </script>
 
 <g {id}>
@@ -112,73 +124,51 @@
         <span>{nodeDetails.name}</span>
         <i class="ri-{NodeIcons[nodeDetails.category]}"></i>
       </div>
-      <div class="node-sockets-container">
+      <div
+        class="node-sockets-container"
+        style="grid-template-rows: repeat({nbRows}, auto);"
+      >
         {#each nodeDetails.inputs as input, index (index)}
-          <div class="node-socket-line">
-            <div class="node-socket">
-              <div
-                class="socket input-socket"
-                style="background: {SocketColors[input.type]}"
-                data-node-id={id}
-                data-port-name={input.name}
-                data-port-direction="input"
-                data-port-type={input.type}
-                onmousedown={(e) =>
-                  handleLocalConnectionClick(e, input, "input")}
-              ></div>
-              <span>{capitalizeFirstLetter(input.name)}</span>
-            </div>
-            {#if nodeDetails.outputs && nodeDetails.outputs[index]}
-              {@const output = nodeDetails.outputs[index]}
-              <div class="node-socket">
-                <span>{capitalizeFirstLetter(output.name)}</span>
-                <div
-                  class="socket output-socket"
-                  style="background: {SocketColors[output.type]}"
-                  data-node-id={id}
-                  data-port-name={output.name}
-                  data-port-direction="output"
-                  data-port-type={output.type}
-                  onmousedown={(e) =>
-                    handleLocalConnectionClick(e, output, "output")}
-                ></div>
-              </div>
-            {:else if customComponent[node.type]}
-              {@const CustomComponent = customComponent[node.type]}
-              <CustomComponent {node} {id} />
-            {/if}
+          <div class="node-socket input" style="grid-row: {index + 1}">
+            <div
+              class="socket input-socket"
+              style="background: {SocketColors[input.type]}"
+              data-node-id={id}
+              data-port-name={input.name}
+              data-port-direction="input"
+              data-port-type={input.type}
+              onmousedown={(e) => handleLocalConnectionClick(e, input, "input")}
+            ></div>
+            <span>{capitalizeFirstLetter(input.name)}</span>
           </div>
         {/each}
-        {#if nodeDetails.outputs && nodeDetails.outputs.length > (nodeDetails.inputs?.length || 0)}
-          {@const nbToRemove = nodeDetails.inputs?.length || 0}
-          {@const remainingOutputs = nodeDetails.outputs.slice(
-            nbToRemove,
-            nodeDetails.outputs.length - nbToRemove,
-          )}
-          {#each remainingOutputs as output, index (index)}
+        {#each nodeDetails.outputs as output, index (index)}
+          <div class="node-socket output" style="grid-row: {index + 1}">
+            <span>{capitalizeFirstLetter(output.name)}</span>
             <div
-              class="node-socket-line"
-              class:right-align={!customComponent[node.type]}
+              class="socket output-socket"
+              style="background: {SocketColors[output.type]}"
+              data-node-id={id}
+              data-port-name={output.name}
+              data-port-direction="output"
+              data-port-type={output.type}
+              onmousedown={(e) =>
+                handleLocalConnectionClick(e, output, "output")}
+            ></div>
+          </div>
+        {/each}
+        {#if customComponent[node.type]}
+          {@const details = customComponent[node.type]}
+          {#if details}
+            {@const CustomComponent = details.component}
+            {@const position = details.position}
+            {@const onRightSide = position.x === 2 ? "justify-self: end;" : ""}
+            <div
+              style="grid-row: {position.y}; grid-column: {position.x}; display: flex; {onRightSide}"
             >
-              {#if customComponent[node.type]}
-                {@const CustomComponent = customComponent[node.type]}
-                <CustomComponent {node} {id} />
-              {/if}
-              <div class="node-socket">
-                <span>{capitalizeFirstLetter(output.name)}</span>
-                <div
-                  class="socket output-socket"
-                  style="background: {SocketColors[output.type]}"
-                  data-node-id={id}
-                  data-port-name={output.name}
-                  data-port-direction="output"
-                  data-port-type={output.type}
-                  onmousedown={(e) =>
-                    handleLocalConnectionClick(e, output, "output")}
-                ></div>
-              </div>
+              <CustomComponent {node} {id} />
             </div>
-          {/each}
+          {/if}
         {/if}
       </div>
     </div>
@@ -216,19 +206,20 @@
     }
 
     .node-sockets-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
       padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 24px;
+      row-gap: 24px;
       box-sizing: border-box;
 
-      .node-socket-line {
-        display: flex;
-        justify-content: space-between;
+      .node-socket.input {
+        grid-column: 1;
+        justify-self: start;
+      }
 
-        &.right-align {
-          justify-content: flex-end;
-        }
+      .node-socket.output {
+        grid-column: 2;
+        justify-self: end;
       }
 
       .node-socket {
