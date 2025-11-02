@@ -6,6 +6,7 @@
   import PanelTitlebar from "../../components/PanelTitlebar.svelte";
   import IconButton from "../../components/IconButton.svelte";
   import { isInside, normalizeRect, type Rect } from "../Geometry";
+  import { onMount } from "svelte";
 
   const MIN_ZOOM = 0.25;
   const MAX_ZOOM = 2;
@@ -34,6 +35,20 @@
   let pan: Vector2 = $state({ x: 0, y: 0 });
   let isPanning: boolean = $state(false);
   let lastMouse: Vector2 = $state({ x: 0, y: 0 });
+
+  $effect(() => {
+    zoom;
+    pan.x;
+    pan.y;
+    localStorage.setItem("user-settings", JSON.stringify({ zoom, pan }));
+  });
+
+  const settingsStr = localStorage.getItem("user-settings");
+  if (settingsStr) {
+    const settings = JSON.parse(settingsStr);
+    zoom = settings.zoom;
+    pan = settings.pan;
+  }
 
   const svgProjection = (x: number, y: number): Vector2 => {
     if (!svgElement) return { x: 0, y: 0 };
