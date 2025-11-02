@@ -38,6 +38,14 @@ export function createConnectionResolver(
       );
       if (!conn) {
         const node = graph.nodes[id];
+        const nodeDetails = Nodes[node.type];
+        if (nodeDetails.evaluateOutput) {
+          return nodeDetails.evaluateOutput(
+            id,
+            node,
+            createConnectionResolver(graph),
+          );
+        }
         return node.parameters?.[socketName] ?? undefined;
       }
       return createConnectionResolver(graph, visited).getExpressionForSocket(

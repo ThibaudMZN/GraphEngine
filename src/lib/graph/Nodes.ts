@@ -9,6 +9,7 @@ export type NodeType =
   | "OnUpdate"
   | "If"
   | "Comparator"
+  | "Operator"
   | "Input"
   | "Constant"
   | "Move"
@@ -23,6 +24,11 @@ export type Node = {
   outputs?: Socket[];
   inputs?: Socket[];
   code: (
+    id: NodeId,
+    node: NodeInstance,
+    connections: ConnectionResolver,
+  ) => string;
+  evaluateOutput?: (
     id: NodeId,
     node: NodeInstance,
     connections: ConnectionResolver,
@@ -125,12 +131,30 @@ export const Nodes: Record<NodeType, Node> = {
     ],
     code: () => "",
   },
+  Operator: {
+    name: "Operator",
+    category: "Data",
+    inputs: [
+      { name: "A", type: "number" },
+      { name: "B", type: "number" },
+    ],
+    outputs: [{ name: "result", type: "number" }],
+    parameters: { operator: "+" },
+    code: () => "",
+    evaluateOutput: (id, node, connections) => {
+      const a = connections.getExpressionForSocket(id, "A");
+      const b = connections.getExpressionForSocket(id, "B");
+      const operator = node.parameters?.operator;
+      if (!operator) return "";
+      return `${a} ${operator} ${b}`;
+    },
+  },
   Screen: {
     name: "Screen",
     category: "Data",
     parameters: {
-      width: 'ctx.objects["screen"].width',
-      height: 'ctx.objects["screen"].height',
+      width: 'ctx.constants["screen"].width',
+      height: 'ctx.constants["screen"].height',
     },
     outputs: [
       { name: "width", type: "number" },

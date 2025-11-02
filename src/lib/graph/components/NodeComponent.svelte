@@ -22,6 +22,7 @@
   import InputComponent from "./customNodeComponents/InputComponent.svelte";
   import ConstantComponent from "./customNodeComponents/ConstantComponent.svelte";
   import ComparatorComponent from "./customNodeComponents/ComparatorComponent.svelte";
+  import OperatorComponent from "./customNodeComponents/OperatorComponent.svelte";
 
   type Props = {
     node: NodeInstance;
@@ -45,6 +46,7 @@
     Input: InputComponent,
     Constant: ConstantComponent,
     Comparator: ComparatorComponent,
+    Operator: OperatorComponent,
   } as const;
 
   const nodeDetails: Node = Nodes[node.type];
