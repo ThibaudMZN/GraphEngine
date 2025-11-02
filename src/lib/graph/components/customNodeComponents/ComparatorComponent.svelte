@@ -1,11 +1,5 @@
 <script lang="ts">
-  import {
-    GRAPH_NODE_HEIGHT,
-    GRAPH_NODE_WIDTH,
-    graphStore,
-    type NodeId,
-    type NodeInstance,
-  } from "../../GraphStore";
+  import { graphStore, type NodeId, type NodeInstance } from "../../GraphStore";
 
   type Props = {
     node: NodeInstance;
@@ -19,8 +13,6 @@
   const updateParameter = async () => {
     await graphStore.updateParameter(id, "comparator", value);
   };
-  const sizeX = 64;
-  const sizeY = 32;
 </script>
 
 <select onchange={() => updateParameter()} bind:value>
@@ -34,12 +26,13 @@
 <style>
   select {
     color: var(--alt-text);
-    font-size: 12px;
+    font-size: 10px;
     line-height: 16px;
     border: none;
     background: var(--border);
     border-radius: 4px;
     margin: 0;
     max-height: 16px;
+    font-family: "Open Sans", sans-serif;
   }
 </style>
