@@ -1,9 +1,10 @@
 export class EngineRuntime {
+  ctx: Record<string, any> = {};
   private worker: Worker;
-  private ctx: any;
   private canvas: HTMLCanvasElement;
   private lastTime = 0;
   private ready = false;
+  private running = false;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -24,13 +25,7 @@ export class EngineRuntime {
       if (type === "error") console.error("Sandbox error:", error);
     };
 
-    this.ctx = {
-      objects: {
-        player: { x: 50, y: 50, rotation: 0 },
-        screen: { width: canvas.width, height: canvas.height },
-      },
-      input: { keys: {} },
-    };
+    this.initContext();
 
     window.addEventListener(
       "keydown",
@@ -48,19 +43,37 @@ export class EngineRuntime {
   }
 
   init() {
+    this.initContext();
     this.worker.postMessage({ type: "init", ctx: this.ctx });
+  }
+
+  private initContext() {
+    this.ctx = {
+      objects: {
+        player: { x: 50, y: 50, rotation: 0 },
+      },
+      constants: {
+        screen: { width: this.canvas.width, height: this.canvas.height },
+      },
+      input: { keys: {} },
+    };
   }
 
   start() {
     this.lastTime = performance.now();
+    this.running = true;
     const loop = (time: number) => {
       const delta = (time - this.lastTime) / 1000;
       this.lastTime = time;
       this.worker.postMessage({ type: "update", ctx: this.ctx, delta });
       this.render();
-      requestAnimationFrame(loop);
+      if (this.running) requestAnimationFrame(loop);
     };
     requestAnimationFrame(loop);
+  }
+
+  stop() {
+    this.running = false;
   }
 
   render() {

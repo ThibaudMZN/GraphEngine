@@ -46,6 +46,7 @@
       variant={running ? "red" : undefined}
       onclick={() => {
         running = false;
+        engine?.stop();
       }}
     />
     <IconButton
