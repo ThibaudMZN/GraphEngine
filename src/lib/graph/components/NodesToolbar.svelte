@@ -127,13 +127,14 @@
 
         .node-container {
           display: flex;
+          flex-direction: column;
           gap: 8px;
         }
       }
     }
 
     .draggable-node {
-      padding: 2px 4px;
+      padding: 4px 8px;
       width: fit-content;
       font-size: 12px;
       line-height: 16px;
