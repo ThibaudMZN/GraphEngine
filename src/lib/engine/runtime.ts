@@ -56,6 +56,7 @@ export class EngineRuntime {
         screen: { width: this.canvas.width, height: this.canvas.height },
       },
       input: { keys: {} },
+      timers: {},
     };
   }
 

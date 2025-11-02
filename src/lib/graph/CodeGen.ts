@@ -51,6 +51,7 @@ export async function generateCode(graph: GraphState): Promise<string> {
       conditionals: true,
       evaluate: true,
       sequences: false,
+      booleans: false,
     },
     format: {
       beautify: true, // keeps it readable

@@ -9,6 +9,7 @@ export type NodeType =
   | "OnUpdate"
   | "If"
   | "Comparator"
+  | "Timer"
   | "Operator"
   | "Input"
   | "Constant"
@@ -51,7 +52,7 @@ export const Nodes: Record<NodeType, Node> = {
     outputs: [{ name: "flow", type: "flow" }],
     code: (id, node, connections) => {
       const flow = connections.flow(id, "flow");
-      return `function __onUpdate_${id}(ctx) {\n${flow}\n}`;
+      return `function __onUpdate_${id}(ctx, delta) {\n${flow}\n}`;
     },
   },
   If: {
@@ -207,6 +208,37 @@ export const Nodes: Record<NodeType, Node> = {
                 ctx.objects[${target}].rotation ${operator} ${angle};
                 ${flowNext}
             `;
+    },
+  },
+  Timer: {
+    name: "Timer",
+    category: "Logic",
+    inputs: [
+      { name: "flow", type: "flow" },
+      { name: "duration", type: "number" },
+    ],
+    outputs: [{ name: "done", type: "flow" }],
+    parameters: { repeat: false },
+    code: (id, node, connections) => {
+      const duration = connections.getExpressionForSocket(id, "duration");
+      const flowNext = connections.flow(id, "done");
+      const repeat = node.parameters?.repeat;
+
+      const key = `__timer_${id}`;
+
+      return `
+      if (!ctx.timers["${key}"]) {
+        ctx.timers["${key}"] = { elapsed: 0, active: true };
+      }
+      if(ctx.timers["${key}"].active) {
+        ctx.timers["${key}"].elapsed += delta;
+        if (ctx.timers["${key}"].elapsed >= ${duration}) {
+          ctx.timers["${key}"].elapsed = 0;
+          ${repeat ? "" : `ctx.timers["${key}"].active = false;`}
+          ${flowNext}
+        }
+      }
+    `;
     },
   },
 } as const;

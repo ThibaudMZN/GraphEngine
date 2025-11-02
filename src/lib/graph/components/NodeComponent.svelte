@@ -24,6 +24,7 @@
   import ComparatorComponent from "./customNodeComponents/ComparatorComponent.svelte";
   import OperatorComponent from "./customNodeComponents/OperatorComponent.svelte";
   import DeltaOrAbsoluteComponent from "./customNodeComponents/DeltaOrAbsoluteComponent.svelte";
+  import TimerComponent from "./customNodeComponents/TimerComponent.svelte";
 
   type Props = {
     node: NodeInstance;
@@ -57,6 +58,7 @@
     Operator: { component: OperatorComponent, position: { x: 2, y: 2 } },
     Move: { component: DeltaOrAbsoluteComponent, position: { x: 2, y: 2 } },
     Rotate: { component: DeltaOrAbsoluteComponent, position: { x: 2, y: 2 } },
+    Timer: { component: TimerComponent, position: { x: 2, y: 2 } },
   } as const;
 
   const nodeDetails: Node = Nodes[node.type];
@@ -109,7 +111,6 @@
         mousePosition: { x: e.clientX, y: e.clientY },
         nodePosition: { x: node.position.x, y: node.position.y },
       })}
-    ondblclick={async () => await graphStore.deleteNode(id)}
     onclick={(e) => {
       if (e.button === 0 && e.shiftKey) {
         graphStore.toggleNodeSelection(id);
@@ -140,7 +141,10 @@
               data-port-name={input.name}
               data-port-direction="input"
               data-port-type={input.type}
-              onmousedown={(e) => handleLocalConnectionClick(e, input, "input")}
+              onmousedown={(e) => {
+                if (e.button === 0)
+                  handleLocalConnectionClick(e, input, "input");
+              }}
             ></div>
             <span>{capitalizeFirstLetter(input.name)}</span>
           </div>

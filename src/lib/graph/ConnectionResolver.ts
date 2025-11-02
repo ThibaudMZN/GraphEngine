@@ -40,6 +40,7 @@ export function createConnectionResolver(
         const node = graph.nodes[id];
         const nodeDetails = Nodes[node.type];
         if (nodeDetails.evaluateOutput) {
+          //TODO: We hit a "too much recursion" here if the socket is not connected
           return nodeDetails.evaluateOutput(
             id,
             node,
@@ -48,7 +49,7 @@ export function createConnectionResolver(
         }
         return node.parameters?.[socketName] ?? undefined;
       }
-      return createConnectionResolver(graph, visited).getExpressionForSocket(
+      return createConnectionResolver(graph).getExpressionForSocket(
         conn.from.id,
         conn.from.name,
       );
