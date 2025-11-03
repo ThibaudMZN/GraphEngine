@@ -35,66 +35,9 @@ export type GraphState = {
   selectedNodes: Set<NodeId>;
 };
 
-const id1 = "1";
-const id2 = "2";
-const id3 = "3";
-const id4 = "4";
-const id5 = "5";
-const id6 = "6";
 const defaultGraph = {
-  nodes: {
-    [id1]: {
-      type: "OnStart",
-      position: { x: 80, y: 30 },
-    },
-    [id2]: {
-      type: "Move",
-      position: { x: 240, y: 60 },
-    },
-    [id3]: {
-      type: "OnUpdate",
-      position: { x: 80, y: 180 },
-    },
-    [id4]: {
-      type: "Move",
-      position: { x: 400, y: 240 },
-    },
-    [id5]: {
-      type: "If",
-      position: { x: 240, y: 240 },
-    },
-    [id6]: {
-      type: "Constant",
-      position: { x: 70, y: 90 },
-    },
-  },
-  connections: [
-    {
-      from: { id: id1, name: "flow" },
-      to: { id: id2, name: "flow" },
-      type: "flow",
-    },
-    {
-      from: { id: id3, name: "flow" },
-      to: { id: id5, name: "flow" },
-      type: "flow",
-    },
-    {
-      from: { id: id5, name: "true" },
-      to: { id: id4, name: "flow" },
-      type: "flow",
-    },
-    {
-      from: { id: id6, name: "value" },
-      to: { id: id2, name: "dx" },
-      type: "number",
-    },
-    {
-      from: { id: id6, name: "value" },
-      to: { id: id2, name: "dy" },
-      type: "number",
-    },
-  ],
+  nodes: {},
+  connections: [],
   selectedNodes: new Set<NodeId>(),
 };
 
