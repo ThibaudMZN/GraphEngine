@@ -57,6 +57,7 @@
     Comparator: { component: ComparatorComponent, position: { x: 2, y: 3 } },
     Operator: { component: OperatorComponent, position: { x: 2, y: 2 } },
     Move: { component: DeltaOrAbsoluteComponent, position: { x: 2, y: 2 } },
+    Velocity: { component: DeltaOrAbsoluteComponent, position: { x: 2, y: 2 } },
     Rotate: { component: DeltaOrAbsoluteComponent, position: { x: 2, y: 2 } },
     Timer: { component: TimerComponent, position: { x: 2, y: 2 } },
   } as const;

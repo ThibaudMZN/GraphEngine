@@ -1,10 +1,20 @@
 import type { Vector2 } from "../graph/GraphStore";
 
-type GameObject = {
+type BaseGameObject = {
   position: Vector2;
   size: { width: number; height: number };
   rotation: number;
 };
+
+type StaticGameObject = BaseGameObject & { type: "Static" };
+
+type PhysicsGameObject = BaseGameObject & {
+  velocity: Vector2;
+  acceleration: Vector2;
+  type: "Physics";
+};
+
+type GameObject = StaticGameObject | PhysicsGameObject;
 
 export type GameContext = {
   objects: Record<string, GameObject>;
@@ -13,6 +23,7 @@ export type GameContext = {
       width: number;
       height: number;
     };
+    gravity: number;
   };
   input: {
     keys: Record<string, boolean>;
@@ -86,10 +97,14 @@ export class EngineRuntime {
           position: { x: 50, y: 50 },
           rotation: 0,
           size: { width: 50, height: 50 },
+          velocity: { x: 0, y: 0 },
+          acceleration: { x: 0, y: 0 },
+          type: "Physics",
         },
       },
       constants: {
         screen: { width: this.canvas.width, height: this.canvas.height },
+        gravity: 1000,
       },
       input: { keys: {}, pressed: {} },
       timers: {},

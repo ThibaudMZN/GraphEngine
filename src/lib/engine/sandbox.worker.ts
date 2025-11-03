@@ -4,9 +4,28 @@ let gameModule: any = null;
 
 type RuntimeMessage = {
   type: "load" | "init" | "update";
-  code?: string;
+  code: string;
   ctx: GameContext;
-  delta?: number;
+  delta: number;
+};
+
+const applyPhysics = (ctx: GameContext, delta: number) => {
+  const gravity = ctx.constants.gravity ?? 0;
+
+  for (const obj of Object.values(ctx.objects)) {
+    if (obj.type === "Physics") {
+      obj.acceleration.y += gravity;
+
+      obj.velocity.x += obj.acceleration.x * delta;
+      obj.velocity.y += obj.acceleration.y * delta;
+
+      obj.position.x += obj.velocity.x * delta;
+      obj.position.y += obj.velocity.y * delta;
+
+      obj.acceleration.x = 0;
+      obj.acceleration.y = 0;
+    }
+  }
 };
 
 self.onmessage = (e: MessageEvent<RuntimeMessage>) => {
@@ -34,6 +53,7 @@ self.onmessage = (e: MessageEvent<RuntimeMessage>) => {
 
   if (type === "update" && gameModule?.update) {
     try {
+      applyPhysics(ctx, delta);
       gameModule.update(ctx, delta);
       self.postMessage({ type: "updated", ctx });
     } catch (err) {

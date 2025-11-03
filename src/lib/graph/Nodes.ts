@@ -15,6 +15,7 @@ export type NodeType =
   | "Constant"
   | "Move"
   | "Position"
+  | "Velocity"
   | "Size"
   | "Screen"
   | "Rotate";
@@ -201,13 +202,40 @@ export const Nodes: Record<NodeType, Node> = {
     },
     code: (id, node, connections) => {
       const flowNext = connections.flow(id, "flow");
-      const dx = connections.getExpressionForSocket(id, "dx") || 0;
-      const dy = connections.getExpressionForSocket(id, "dy") || 0;
+      const dx = connections.getExpressionForSocket(id, "dx");
+      const dy = connections.getExpressionForSocket(id, "dy");
       const target = JSON.stringify("player");
       const operator = node.parameters?.mode === "delta" ? "+=" : "=";
+
       return `
-                ctx.objects[${target}].position.x ${operator} ${dx};
-                ctx.objects[${target}].position.y ${operator} ${dy};
+                ${dx !== undefined ? `ctx.objects[${target}].position.x ${operator} ${dx};` : ""}
+                ${dy !== undefined ? `ctx.objects[${target}].position.y ${operator} ${dy};` : ""}
+                ${flowNext}
+            `;
+    },
+  },
+  Velocity: {
+    name: "Velocity",
+    category: "Action",
+    inputs: [
+      { name: "flow", type: "flow" },
+      { name: "dx", type: "number" },
+      { name: "dy", type: "number" },
+    ],
+    outputs: [{ name: "flow", type: "flow" }],
+    parameters: {
+      mode: "delta",
+    },
+    code: (id, node, connections) => {
+      const flowNext = connections.flow(id, "flow");
+      const dx = connections.getExpressionForSocket(id, "dx");
+      const dy = connections.getExpressionForSocket(id, "dy");
+      const target = JSON.stringify("player");
+      const operator = node.parameters?.mode === "delta" ? "+=" : "=";
+
+      return `
+                ${dx !== undefined ? `ctx.objects[${target}].velocity.x ${operator} ${dx};` : ""}
+                ${dy !== undefined ? `ctx.objects[${target}].velocity.y ${operator} ${dy};` : ""}
                 ${flowNext}
             `;
     },
