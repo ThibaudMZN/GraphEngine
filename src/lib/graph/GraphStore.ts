@@ -203,16 +203,28 @@ export const copySelectedNodes = () => {
   return { nodes, connections } as Clipboard;
 };
 
-export const pasteNodes = async (clipboard: Clipboard, offset: Vector2) => {
+export const pasteNodes = async (clipboard: Clipboard, center: Vector2) => {
   if (!clipboard) return;
+  if (Object.keys(clipboard.nodes).length === 0) return;
 
   const oldToNewIds: Record<NodeId, NodeId> = {};
 
+  const size = Object.keys(clipboard.nodes).length;
+  const oldNodesAcc = Object.values(clipboard.nodes).reduce(
+    (acc, v) => {
+      return { x: acc.x + v.position.x, y: acc.y + v.position.y };
+    },
+    { x: 0, y: 0 },
+  );
+  const oldNodesCenter = { x: oldNodesAcc.x / size, y: oldNodesAcc.y / size };
+
   for (const oldId in clipboard.nodes) {
     const node = clipboard.nodes[oldId];
+    const dx = node.position.x - oldNodesCenter.x;
+    const dy = node.position.y - oldNodesCenter.y;
     const newId = await graphStore.addNode(node.type, {
-      x: node.position.x + offset.x,
-      y: node.position.y + offset.y,
+      x: center.x + dx,
+      y: center.y + dy,
     });
     await tick();
     if (node.parameters) {

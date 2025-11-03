@@ -14,7 +14,6 @@
   import PanelTitlebar from "../../components/PanelTitlebar.svelte";
   import IconButton from "../../components/IconButton.svelte";
   import { isInside, normalizeRect, type Rect } from "../Geometry";
-  import { onMount } from "svelte";
 
   const MIN_ZOOM = 0.25;
   const MAX_ZOOM = 2;
@@ -47,6 +46,7 @@
     | { nodes: Record<NodeId, NodeInstance>; connections: Connection[] }
     | undefined = $state();
   let isPressingCtrl: boolean = $state(false);
+  let currentMouse: Vector2 = $state({ x: 0, y: 0 });
 
   $effect(() => {
     zoom;
@@ -156,6 +156,7 @@
   const snapToGrid = (value: number) => Math.round(value / gridSize) * gridSize;
 
   const handleMouseMove = (e: MouseEvent) => {
+    currentMouse = svgProjection(e.clientX, e.clientY);
     if (isPanning) {
       const dx = e.clientX - lastMouse.x;
       const dy = e.clientY - lastMouse.y;
@@ -296,7 +297,7 @@
       }
       if (e.key.toLowerCase() === "v") {
         if (clipboard) {
-          await pasteNodes(clipboard, { x: 0, y: 100 });
+          await pasteNodes(clipboard, currentMouse);
           e.preventDefault();
         }
       }
