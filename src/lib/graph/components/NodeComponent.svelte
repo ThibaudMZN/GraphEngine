@@ -26,6 +26,7 @@
   import DeltaOrAbsoluteComponent from "./customNodeComponents/DeltaOrAbsoluteComponent.svelte";
   import TimerComponent from "./customNodeComponents/TimerComponent.svelte";
   import TextComponent from "./customNodeComponents/TextComponent.svelte";
+  import ColorComponent from "./customNodeComponents/ColorComponent.svelte";
 
   type Props = {
     node: NodeInstance;
@@ -49,19 +50,26 @@
     component: Component<any>;
     position: Vector2;
   };
-  const customComponent: Partial<Record<NodeType, CustomComponent>> = {
-    Input: {
-      component: InputComponent,
-      position: { x: 1, y: 1 },
-    },
-    Constant: { component: ConstantComponent, position: { x: 1, y: 1 } },
-    Comparator: { component: ComparatorComponent, position: { x: 2, y: 3 } },
-    Operator: { component: OperatorComponent, position: { x: 2, y: 2 } },
-    Move: { component: DeltaOrAbsoluteComponent, position: { x: 2, y: 2 } },
-    Velocity: { component: DeltaOrAbsoluteComponent, position: { x: 2, y: 2 } },
-    Rotate: { component: DeltaOrAbsoluteComponent, position: { x: 2, y: 2 } },
-    Timer: { component: TimerComponent, position: { x: 2, y: 2 } },
-    Text: { component: TextComponent, position: { x: 2, y: 2 } },
+  const customComponent: Partial<Record<NodeType, CustomComponent[]>> = {
+    Input: [
+      {
+        component: InputComponent,
+        position: { x: 1, y: 1 },
+      },
+    ],
+    Constant: [{ component: ConstantComponent, position: { x: 1, y: 1 } }],
+    Comparator: [{ component: ComparatorComponent, position: { x: 2, y: 3 } }],
+    Operator: [{ component: OperatorComponent, position: { x: 2, y: 2 } }],
+    Move: [{ component: DeltaOrAbsoluteComponent, position: { x: 2, y: 2 } }],
+    Velocity: [
+      { component: DeltaOrAbsoluteComponent, position: { x: 2, y: 2 } },
+    ],
+    Rotate: [{ component: DeltaOrAbsoluteComponent, position: { x: 2, y: 2 } }],
+    Timer: [{ component: TimerComponent, position: { x: 2, y: 2 } }],
+    Text: [
+      { component: TextComponent, position: { x: 2, y: 2 } },
+      { component: ColorComponent, position: { x: 2, y: 3 } },
+    ],
   } as const;
 
   const nodeDetails: Node = Nodes[node.type];
@@ -170,14 +178,17 @@
         {#if customComponent[node.type]}
           {@const details = customComponent[node.type]}
           {#if details}
-            {@const CustomComponent = details.component}
-            {@const position = details.position}
-            {@const onRightSide = position.x === 2 ? "justify-self: end;" : ""}
-            <div
-              style="grid-row: {position.y}; grid-column: {position.x}; display: flex; {onRightSide}"
-            >
-              <CustomComponent {node} {id} />
-            </div>
+            {#each details as detail, index (index)}
+              {@const CustomComponent = detail.component}
+              {@const position = detail.position}
+              {@const onRightSide =
+                position.x === 2 ? "justify-self: end;" : ""}
+              <div
+                style="grid-row: {position.y}; grid-column: {position.x}; display: flex; {onRightSide}"
+              >
+                <CustomComponent {node} {id} />
+              </div>
+            {/each}
           {/if}
         {/if}
       </div>
