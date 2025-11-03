@@ -46,6 +46,7 @@
   let clipboard:
     | { nodes: Record<NodeId, NodeInstance>; connections: Connection[] }
     | undefined = $state();
+  let isPressingCtrl: boolean = $state(false);
 
   $effect(() => {
     zoom;
@@ -151,6 +152,9 @@
     marquee = undefined;
   };
 
+  const gridSize = 20;
+  const snapToGrid = (value: number) => Math.round(value / gridSize) * gridSize;
+
   const handleMouseMove = (e: MouseEvent) => {
     if (isPanning) {
       const dx = e.clientX - lastMouse.x;
@@ -167,6 +171,12 @@
       y -= selectedNodeOffset.y;
       const currentPosition = $graphStore.nodes[selectedNodeId].position;
       const delta = { x: currentPosition.x - x, y: currentPosition.y - y };
+      if (isPressingCtrl) {
+        x = snapToGrid(x);
+        y = snapToGrid(y);
+        delta.x = snapToGrid(delta.x);
+        delta.y = snapToGrid(delta.y);
+      }
       graphStore.setNodePosition(selectedNodeId, { x, y });
       if ($graphStore.selectedNodes.size > 0) {
         for (const id of [...$graphStore.selectedNodes]) {
@@ -276,6 +286,7 @@
   };
 
   const handleKeyDown = async (e: KeyboardEvent) => {
+    if (e.ctrlKey) isPressingCtrl = true;
     if (e.key.toLowerCase() === "a" && e.ctrlKey) graphStore.selectAll();
     if (e.key === "Delete") await graphStore.deleteSelectedNodes();
     if (e.ctrlKey || e.metaKey) {
@@ -291,12 +302,17 @@
       }
     }
   };
+
+  const handleKeyUp = async (e: KeyboardEvent) => {
+    if (e.key === "Control") isPressingCtrl = false;
+  };
 </script>
 
 <svelte:window
   onmouseup={handleMouseUp}
   onmousemove={handleMouseMove}
   onkeydown={handleKeyDown}
+  onkeyup={handleKeyUp}
 />
 <div class="graph-container">
   <PanelTitlebar title="Graph Editor">
