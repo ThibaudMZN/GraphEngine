@@ -150,10 +150,14 @@ export const Nodes: Record<NodeType, Node> = {
     parameters: {
       width: 'ctx.objects["player"].size.width',
       height: 'ctx.objects["player"].size.height',
+      halfWidth: 'ctx.objects["player"].size.width / 2',
+      halfHeight: 'ctx.objects["player"].size.height / 2',
     },
     outputs: [
       { name: "width", type: "number" },
       { name: "height", type: "number" },
+      { name: "halfWidth", type: "number" },
+      { name: "halfHeight", type: "number" },
     ],
     code: () => "",
   },
@@ -181,10 +185,14 @@ export const Nodes: Record<NodeType, Node> = {
     parameters: {
       width: "ctx.constants.screen.width",
       height: "ctx.constants.screen.height",
+      halfWidth: "ctx.constants.screen.width / 2",
+      halfHeight: "ctx.constants.screen.height / 2",
     },
     outputs: [
       { name: "width", type: "number" },
       { name: "height", type: "number" },
+      { name: "halfWidth", type: "number" },
+      { name: "halfHeight", type: "number" },
     ],
     code: () => "",
   },
