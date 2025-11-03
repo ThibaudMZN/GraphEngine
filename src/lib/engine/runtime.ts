@@ -14,7 +14,10 @@ export type GameContext = {
       height: number;
     };
   };
-  input: { keys: Record<string, boolean> };
+  input: {
+    keys: Record<string, boolean>;
+    pressed: Record<string, boolean>;
+  };
   timers: {};
 };
 
@@ -45,20 +48,22 @@ export class EngineRuntime {
       }
       if (type === "updated") {
         this.ctx = ctx;
+        this.resetKeyPressed();
       }
       if (type === "error") console.error("Sandbox error:", error);
     };
 
     this.ctx = this.initContext();
 
-    window.addEventListener(
-      "keydown",
-      (e) => (this.ctx.input.keys[e.key] = true),
-    );
-    window.addEventListener(
-      "keyup",
-      (e) => (this.ctx.input.keys[e.key] = false),
-    );
+    window.addEventListener("keydown", (e) => {
+      if (!this.ctx.input.keys[e.key]) {
+        this.ctx.input.pressed[e.key] = true;
+      }
+      this.ctx.input.keys[e.key] = true;
+    });
+    window.addEventListener("keyup", (e) => {
+      this.ctx.input.keys[e.key] = false;
+    });
   }
 
   async loadScript(jsCode: string) {
@@ -68,6 +73,10 @@ export class EngineRuntime {
   init() {
     this.initContext();
     this.worker.postMessage({ type: "init", ctx: this.ctx });
+  }
+
+  private resetKeyPressed() {
+    for (const k in this.ctx.input.pressed) this.ctx.input.pressed[k] = false;
   }
 
   private initContext() {
@@ -82,7 +91,7 @@ export class EngineRuntime {
       constants: {
         screen: { width: this.canvas.width, height: this.canvas.height },
       },
-      input: { keys: {} },
+      input: { keys: {}, pressed: {} },
       timers: {},
     };
     return this.ctx;

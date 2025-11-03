@@ -119,9 +119,16 @@ export const Nodes: Record<NodeType, Node> = {
   Input: {
     name: "Input",
     category: "Data",
-    parameters: { value: 'ctx.input.keys["ArrowRight"]' },
+    parameters: { key: "ArrowRight", type: "hold" },
     outputs: [{ name: "value", type: "boolean" }],
     code: () => "",
+    evaluateOutput: (id, node, connections) => {
+      const key = node.parameters?.key;
+      const type = node.parameters?.type;
+      if (!key || !type) return "";
+      const targetCtx = type === "hold" ? "keys" : "pressed";
+      return `ctx.input["${targetCtx}"]["${key}"]`;
+    },
   },
   Position: {
     name: "Position",
