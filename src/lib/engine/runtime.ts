@@ -16,6 +16,16 @@ type PhysicsGameObject = BaseGameObject & {
 
 type GameObject = StaticGameObject | PhysicsGameObject;
 
+type Timer = { elapsed: number; active: boolean };
+
+type Text = {
+  value: string;
+  x: number;
+  y: number;
+  size: number;
+  color: string;
+};
+
 export type GameContext = {
   objects: Record<string, GameObject>;
   constants: {
@@ -29,7 +39,8 @@ export type GameContext = {
     keys: Record<string, boolean>;
     pressed: Record<string, boolean>;
   };
-  timers: {};
+  timers: Record<string, Timer>;
+  texts: Record<string, Text>;
 };
 
 type WorkerMessage = {
@@ -108,6 +119,7 @@ export class EngineRuntime {
       },
       input: { keys: {}, pressed: {} },
       timers: {},
+      texts: {},
     };
     return this.ctx;
   }
@@ -146,5 +158,13 @@ export class EngineRuntime {
       player.size.height,
     );
     c.restore();
+
+    c.textAlign = "center";
+    c.textBaseline = "middle";
+    for (const t of Object.values(this.ctx.texts)) {
+      c.fillStyle = t.color;
+      c.font = `${t.size}px "Open Sans"`;
+      c.fillText(t.value, t.x, t.y);
+    }
   }
 }

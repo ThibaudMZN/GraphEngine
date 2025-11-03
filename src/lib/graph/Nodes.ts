@@ -18,8 +18,15 @@ export type NodeType =
   | "Velocity"
   | "Size"
   | "Screen"
-  | "Rotate";
-export const NodeCategories = ["Event", "Logic", "Action", "Data"] as const;
+  | "Rotate"
+  | "Text";
+export const NodeCategories = [
+  "Event",
+  "Logic",
+  "Action",
+  "Data",
+  "UI",
+] as const;
 export type NodeCategory = (typeof NodeCategories)[number];
 export type Node = {
   name: string;
@@ -301,6 +308,39 @@ export const Nodes: Record<NodeType, Node> = {
     `;
     },
   },
+  Text: {
+    name: "Text",
+    category: "UI",
+    parameters: {
+      text: "Hello world",
+      size: 48,
+      color: "white",
+    },
+    inputs: [
+      { name: "flow", type: "flow" },
+      { name: "x", type: "number" },
+      { name: "y", type: "number" },
+      { name: "size", type: "number" },
+    ],
+    outputs: [{ name: "flow", type: "flow" }],
+    code: (id, node, connections) => {
+      const x = connections.getExpressionForSocket(id, "x");
+      const y = connections.getExpressionForSocket(id, "y");
+      const size = connections.getExpressionForSocket(id, "size");
+
+      if (!node.parameters || !x || !y || !size) return "";
+      const { text, color } = node.parameters;
+      return `
+        ctx.texts[${id}] = {
+            value: "${text}",
+            x: ${x},
+            y: ${y},
+            size: ${size},
+            color: "${color}",
+          };
+    `;
+    },
+  },
 } as const;
 
 type Color = `#${string}`;
@@ -315,16 +355,19 @@ export const NodeColors: Record<NodeCategory, Color> = {
   Event: "#60a5fa",
   Logic: "#c084fc",
   Data: "#4ade80",
+  UI: "#f87171",
 };
 export const NodeHeaderColors: Record<NodeCategory, Color> = {
   Action: "#ca8a04",
   Event: "#2563eb",
   Logic: "#9333ea",
   Data: "#16a34a",
+  UI: "#dc2626",
 };
 export const NodeIcons: Record<NodeCategory, string> = {
   Event: "flashlight-line",
   Logic: "cpu-line",
   Action: "play-circle-line",
   Data: "nft-line",
+  UI: "palette-line",
 };

@@ -25,6 +25,7 @@
   import OperatorComponent from "./customNodeComponents/OperatorComponent.svelte";
   import DeltaOrAbsoluteComponent from "./customNodeComponents/DeltaOrAbsoluteComponent.svelte";
   import TimerComponent from "./customNodeComponents/TimerComponent.svelte";
+  import TextComponent from "./customNodeComponents/TextComponent.svelte";
 
   type Props = {
     node: NodeInstance;
@@ -60,6 +61,7 @@
     Velocity: { component: DeltaOrAbsoluteComponent, position: { x: 2, y: 2 } },
     Rotate: { component: DeltaOrAbsoluteComponent, position: { x: 2, y: 2 } },
     Timer: { component: TimerComponent, position: { x: 2, y: 2 } },
+    Text: { component: TextComponent, position: { x: 2, y: 2 } },
   } as const;
 
   const nodeDetails: Node = Nodes[node.type];
