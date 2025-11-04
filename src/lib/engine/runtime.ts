@@ -4,6 +4,7 @@ type BaseGameObject = {
   position: Vector2;
   size: { width: number; height: number };
   rotation: number;
+  collidable?: boolean;
 };
 
 type StaticGameObject = BaseGameObject & { type: "Static" };
@@ -14,7 +15,7 @@ type PhysicsGameObject = BaseGameObject & {
   type: "Physics";
 };
 
-type GameObject = StaticGameObject | PhysicsGameObject;
+export type GameObject = StaticGameObject | PhysicsGameObject;
 
 type Timer = { elapsed: number; active: boolean };
 
@@ -41,6 +42,7 @@ export type GameContext = {
   };
   timers: Record<string, Timer>;
   texts: Record<string, Text>;
+  collisions: Record<string, Set<string>>;
 };
 
 type WorkerMessage = {
@@ -111,6 +113,14 @@ export class EngineRuntime {
           velocity: { x: 0, y: 0 },
           acceleration: { x: 0, y: 0 },
           type: "Physics",
+          collidable: true,
+        },
+        wall: {
+          type: "Static",
+          position: { x: 25, y: 500 },
+          rotation: 0,
+          size: { width: 200, height: 50 },
+          collidable: true,
         },
       },
       constants: {
@@ -120,6 +130,7 @@ export class EngineRuntime {
       input: { keys: {}, pressed: {} },
       timers: {},
       texts: {},
+      collisions: {},
     };
     return this.ctx;
   }
@@ -146,18 +157,19 @@ export class EngineRuntime {
     c.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
     c.fillStyle = "skyblue";
-    const player = this.ctx.objects.player;
-    c.save();
-    c.translate(player.position.x, player.position.y);
-    const radians = (player.rotation * Math.PI) / 180;
-    c.rotate(radians);
-    c.fillRect(
-      -player.size.width / 2,
-      -player.size.height / 2,
-      player.size.width,
-      player.size.height,
-    );
-    c.restore();
+    for (const entity of Object.values(this.ctx.objects)) {
+      c.save();
+      c.translate(entity.position.x, entity.position.y);
+      const radians = (entity.rotation * Math.PI) / 180;
+      c.rotate(radians);
+      c.fillRect(
+        -entity.size.width / 2,
+        -entity.size.height / 2,
+        entity.size.width,
+        entity.size.height,
+      );
+      c.restore();
+    }
 
     c.textAlign = "center";
     c.textBaseline = "middle";

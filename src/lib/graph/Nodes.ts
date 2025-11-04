@@ -7,6 +7,7 @@ export type SocketType = "flow" | "string" | "number" | "boolean";
 export type NodeType =
   | "OnStart"
   | "OnUpdate"
+  | "OnCollision"
   | "If"
   | "Comparator"
   | "Timer"
@@ -62,6 +63,24 @@ export const Nodes: Record<NodeType, Node> = {
     code: (id, node, connections) => {
       const flow = connections.flow(id, "flow");
       return `function __onUpdate_${id}(ctx, delta) {\n${flow}\n}`;
+    },
+  },
+  OnCollision: {
+    name: "On collision",
+    category: "Event",
+    outputs: [{ name: "flow", type: "flow" }],
+    parameters: { with: "wall" },
+    code: (id, node, connections) => {
+      const flow = connections.flow(id, "flow");
+      const other = node.parameters?.with;
+      if (!other) return "";
+      return `
+          function __onCollision_${id}(ctx, other) {
+            if(other === "${other}") {
+                ${flow}
+            }
+          }
+      `;
     },
   },
   If: {

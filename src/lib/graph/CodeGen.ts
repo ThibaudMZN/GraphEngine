@@ -8,6 +8,7 @@ export async function generateCode(graph: GraphState): Promise<string> {
 
   let initCode = "";
   let updateCode = "";
+  let collisionCode = "";
 
   for (const [id, node] of Object.entries(graph.nodes)) {
     const type = Nodes[node.type];
@@ -17,6 +18,8 @@ export async function generateCode(graph: GraphState): Promise<string> {
       initCode += type.code(id, node, resolver) + "\n";
     } else if (node.type === "OnUpdate") {
       updateCode += type.code(id, node, resolver) + "\n";
+    } else if (node.type === "OnCollision") {
+      collisionCode += type.code(id, node, resolver) + "\n";
     }
   }
 
@@ -26,6 +29,7 @@ export async function generateCode(graph: GraphState): Promise<string> {
 
     ${initCode}
     ${updateCode}
+    ${collisionCode}
 
     exports.init = function(context) {
       ctx = context;
@@ -42,6 +46,13 @@ export async function generateCode(graph: GraphState): Promise<string> {
         .map(([id]) => `__onUpdate_${id}(ctx, delta);`)
         .join("\n")}
     }
+    
+    exports.onCollision = function(ctx, other) {
+      ${Object.entries(graph.nodes)
+        .filter(([_id, node]) => node.type === "OnCollision")
+        .map(([id]) => `__onCollision_${id}(ctx, other);`)
+        .join("\n")}
+    };
   `;
 
   const cleaned = await minify(source, {

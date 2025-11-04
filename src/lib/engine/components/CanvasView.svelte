@@ -147,10 +147,12 @@
   :global(pre[data-language="javascript"]) {
     margin: 0;
     height: 100%;
+    overflow-y: scroll;
   }
 
   :global(code.hljs) {
     background: #111827;
     height: 100%;
+    overflow-y: scroll;
   }
 </style>

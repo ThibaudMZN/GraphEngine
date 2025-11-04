@@ -27,6 +27,7 @@
   import TimerComponent from "./customNodeComponents/TimerComponent.svelte";
   import TextComponent from "./customNodeComponents/TextComponent.svelte";
   import ColorComponent from "./customNodeComponents/ColorComponent.svelte";
+  import OnCollisionComponent from "./customNodeComponents/OnCollisionComponent.svelte";
 
   type Props = {
     node: NodeInstance;
@@ -69,6 +70,9 @@
     Text: [
       { component: TextComponent, position: { x: 2, y: 2 } },
       { component: ColorComponent, position: { x: 2, y: 3 } },
+    ],
+    OnCollision: [
+      { component: OnCollisionComponent, position: { x: 1, y: 1 } },
     ],
   } as const;
 

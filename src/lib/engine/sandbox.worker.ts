@@ -1,4 +1,4 @@
-import type { GameContext } from "./runtime";
+import type { GameContext, GameObject } from "./runtime";
 
 let gameModule: any = null;
 
@@ -28,6 +28,39 @@ const applyPhysics = (ctx: GameContext, delta: number) => {
   }
 };
 
+const isAABBColliding = (a: GameObject, b: GameObject) =>
+  !(
+    a.position.x + a.size.width < b.position.x ||
+    a.position.x > b.position.x + b.size.width ||
+    a.position.y + a.size.height < b.position.y ||
+    a.position.y > b.position.y + b.size.height
+  );
+
+const detectCollisions = (ctx: GameContext) => {
+  const objs = ctx.objects;
+  const newCollisions: Record<string, Set<string>> = {};
+
+  const ids = Object.keys(objs);
+
+  for (let i = 0; i < ids.length; i++) {
+    const a = objs[ids[i]];
+    if (!a.collidable) continue;
+    for (let j = i + 1; j < ids.length; j++) {
+      const b = objs[ids[j]];
+      if (!b.collidable) continue;
+
+      if (isAABBColliding(a, b)) {
+        if (!newCollisions[ids[i]]) newCollisions[ids[i]] = new Set();
+        if (!newCollisions[ids[j]]) newCollisions[ids[j]] = new Set();
+        newCollisions[ids[i]].add(ids[j]);
+        newCollisions[ids[j]].add(ids[i]);
+      }
+    }
+  }
+
+  return newCollisions;
+};
+
 self.onmessage = (e: MessageEvent<RuntimeMessage>) => {
   const { type, code, ctx, delta } = e.data;
 
@@ -54,6 +87,17 @@ self.onmessage = (e: MessageEvent<RuntimeMessage>) => {
   if (type === "update" && gameModule?.update) {
     try {
       applyPhysics(ctx, delta);
+
+      const previous = ctx.collisions || {};
+      ctx.collisions = detectCollisions(ctx);
+      for (const id in ctx.collisions) {
+        for (const other of ctx.collisions[id]) {
+          if (!previous[id] || !previous[id].has(other)) {
+            gameModule.onCollision?.(ctx, other);
+          }
+        }
+      }
+
       gameModule.update(ctx, delta);
       self.postMessage({ type: "updated", ctx });
     } catch (err) {
