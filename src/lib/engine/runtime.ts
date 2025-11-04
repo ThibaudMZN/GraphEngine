@@ -46,7 +46,7 @@ export type GameContext = {
 };
 
 type WorkerMessage = {
-  type: "inited" | "updated" | "error";
+  type: "inited" | "updated" | "error" | "end";
   error?: Error;
   ctx: GameContext;
 };
@@ -73,6 +73,9 @@ export class EngineRuntime {
       if (type === "updated") {
         this.ctx = ctx;
         this.resetKeyPressed();
+      }
+      if (type === "end") {
+        this.running = false;
       }
       if (type === "error") console.error("Sandbox error:", error);
     };

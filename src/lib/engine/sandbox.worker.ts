@@ -67,8 +67,12 @@ self.onmessage = (e: MessageEvent<RuntimeMessage>) => {
   if (type === "load" && code) {
     try {
       const exports: any = {};
-      const func = new Function("exports", code);
-      func(exports);
+      const game = {
+        end: () => self.postMessage({ type: "end" }),
+      };
+      const func = new Function("exports", "game", code);
+      func(exports, game);
+
       gameModule = exports;
     } catch (err) {
       self.postMessage({ type: "error", error: err });

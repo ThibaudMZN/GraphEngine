@@ -8,6 +8,7 @@ export type NodeType =
   | "OnStart"
   | "OnUpdate"
   | "OnCollision"
+  | "EndGame"
   | "If"
   | "Comparator"
   | "Timer"
@@ -81,6 +82,16 @@ export const Nodes: Record<NodeType, Node> = {
             }
           }
       `;
+    },
+  },
+  EndGame: {
+    name: "End game",
+    category: "Event",
+    inputs: [{ name: "flow", type: "flow" }],
+    code: (id, node, connections) => {
+      return `
+              game.end();
+            `;
     },
   },
   If: {
@@ -346,6 +357,7 @@ export const Nodes: Record<NodeType, Node> = {
       const x = connections.getExpressionForSocket(id, "x");
       const y = connections.getExpressionForSocket(id, "y");
       const size = connections.getExpressionForSocket(id, "size");
+      const flow = connections.flow(id, "flow");
 
       if (!node.parameters || !x || !y || !size) return "";
       const { text, color } = node.parameters;
@@ -357,6 +369,7 @@ export const Nodes: Record<NodeType, Node> = {
             size: ${size},
             color: "${color}",
           };
+        ${flow}
     `;
     },
   },
