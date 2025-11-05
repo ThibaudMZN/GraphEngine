@@ -39,6 +39,7 @@ export type Node = {
     id: NodeId,
     node: NodeInstance,
     connections: ConnectionResolver,
+    sceneId: string,
   ) => string;
   evaluateOutput?: (
     id: NodeId,
@@ -52,7 +53,7 @@ export const Nodes: Record<NodeType, Node> = {
     name: "On start",
     category: "Event",
     outputs: [{ name: "flow", type: "flow" }],
-    code: (id, node, connections) => {
+    code: (id, node, connections, sceneId) => {
       const flow = connections.flow(id, "flow");
       return `function __onStart_${id}(ctx) {\n${flow}\n}`;
     },
@@ -71,13 +72,13 @@ export const Nodes: Record<NodeType, Node> = {
     category: "Event",
     outputs: [{ name: "flow", type: "flow" }],
     parameters: { with: "wall" },
-    code: (id, node, connections) => {
+    code: (id, node, connections, sceneId) => {
       const flow = connections.flow(id, "flow");
       const other = node.parameters?.with;
       if (!other) return "";
       return `
           function __onCollision_${id}(ctx, self, other) {
-            if(self === 'player' && other === "${other}") {
+            if(self === '${sceneId}' && other === "${other}") {
                 ${flow}
             }
           }
@@ -172,8 +173,8 @@ export const Nodes: Record<NodeType, Node> = {
     name: "Position",
     category: "Data",
     parameters: {
-      x: 'ctx.objects["player"].position.x',
-      y: 'ctx.objects["player"].position.y',
+      x: 'ctx.objects["%%_SCENE_ID_%%"].position.x',
+      y: 'ctx.objects["%%_SCENE_ID_%%"].position.y',
     },
     outputs: [
       { name: "x", type: "number" },
@@ -185,10 +186,10 @@ export const Nodes: Record<NodeType, Node> = {
     name: "Size",
     category: "Data",
     parameters: {
-      width: 'ctx.objects["player"].size.width',
-      height: 'ctx.objects["player"].size.height',
-      halfWidth: 'ctx.objects["player"].size.width / 2',
-      halfHeight: 'ctx.objects["player"].size.height / 2',
+      width: 'ctx.objects["%%_SCENE_ID_%%"].size.width',
+      height: 'ctx.objects["%%_SCENE_ID_%%"].size.height',
+      halfWidth: 'ctx.objects["%%_SCENE_ID_%%"].size.width / 2',
+      halfHeight: 'ctx.objects["%%_SCENE_ID_%%"].size.height / 2',
     },
     outputs: [
       { name: "width", type: "number" },
@@ -245,11 +246,11 @@ export const Nodes: Record<NodeType, Node> = {
     parameters: {
       mode: "delta",
     },
-    code: (id, node, connections) => {
+    code: (id, node, connections, sceneId) => {
       const flowNext = connections.flow(id, "flow");
       const dx = connections.getExpressionForSocket(id, "dx");
       const dy = connections.getExpressionForSocket(id, "dy");
-      const target = JSON.stringify("player");
+      const target = JSON.stringify(sceneId);
       const operator = node.parameters?.mode === "delta" ? "+=" : "=";
 
       return `
@@ -271,11 +272,11 @@ export const Nodes: Record<NodeType, Node> = {
     parameters: {
       mode: "delta",
     },
-    code: (id, node, connections) => {
+    code: (id, node, connections, sceneId) => {
       const flowNext = connections.flow(id, "flow");
       const dx = connections.getExpressionForSocket(id, "dx");
       const dy = connections.getExpressionForSocket(id, "dy");
-      const target = JSON.stringify("player");
+      const target = JSON.stringify(sceneId);
       const operator = node.parameters?.mode === "delta" ? "+=" : "=";
 
       return `
@@ -296,10 +297,10 @@ export const Nodes: Record<NodeType, Node> = {
     parameters: {
       mode: "delta",
     },
-    code: (id, node, connections) => {
+    code: (id, node, connections, sceneId) => {
       const flowNext = connections.flow(id, "flow");
       const angle = connections.getExpressionForSocket(id, "angle") || 0;
-      const target = JSON.stringify("player");
+      const target = JSON.stringify(sceneId);
       const operator = node.parameters?.mode === "delta" ? "+=" : "=";
       return `
                 ctx.objects[${target}].rotation ${operator} ${angle};

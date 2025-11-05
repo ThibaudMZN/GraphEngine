@@ -8,6 +8,7 @@ export type ConnectionResolver = {
 
 export function createConnectionResolver(
   graph: GraphState,
+  sceneId: string,
   visited = new Set<string>(),
 ): ConnectionResolver {
   return {
@@ -29,7 +30,8 @@ export function createConnectionResolver(
       return def.code(
         nextNode[0],
         nextNode[1],
-        createConnectionResolver(graph, visited),
+        createConnectionResolver(graph, sceneId, visited),
+        sceneId,
       );
     },
     getExpressionForSocket(id, socketName) {
@@ -44,12 +46,20 @@ export function createConnectionResolver(
           return nodeDetails.evaluateOutput(
             id,
             node,
-            createConnectionResolver(graph),
+            createConnectionResolver(graph, sceneId),
           );
         }
-        return node.parameters?.[socketName] ?? undefined;
+        if (node.parameters?.[socketName] !== undefined) {
+          if (typeof node.parameters[socketName] === "string")
+            return node.parameters[socketName].replaceAll(
+              "%%_SCENE_ID_%%",
+              sceneId,
+            );
+          return node.parameters[socketName];
+        }
+        return undefined;
       }
-      return createConnectionResolver(graph).getExpressionForSocket(
+      return createConnectionResolver(graph, sceneId).getExpressionForSocket(
         conn.from.id,
         conn.from.name,
       );
