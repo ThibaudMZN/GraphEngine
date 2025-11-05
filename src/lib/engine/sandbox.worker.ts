@@ -97,7 +97,7 @@ self.onmessage = (e: MessageEvent<RuntimeMessage>) => {
       for (const id in ctx.collisions) {
         for (const other of ctx.collisions[id]) {
           if (!previous[id] || !previous[id].has(other)) {
-            gameModule.onCollision?.(ctx, other);
+            gameModule.onCollision?.(ctx, id, other);
           }
         }
       }

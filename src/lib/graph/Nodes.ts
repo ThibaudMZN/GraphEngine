@@ -76,8 +76,8 @@ export const Nodes: Record<NodeType, Node> = {
       const other = node.parameters?.with;
       if (!other) return "";
       return `
-          function __onCollision_${id}(ctx, other) {
-            if(other === "${other}") {
+          function __onCollision_${id}(ctx, self, other) {
+            if(self === 'player' && other === "${other}") {
                 ${flow}
             }
           }

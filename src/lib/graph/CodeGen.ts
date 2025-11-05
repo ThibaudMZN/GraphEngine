@@ -47,10 +47,10 @@ export async function generateCode(graph: GraphState): Promise<string> {
         .join("\n")}
     }
     
-    exports.onCollision = function(ctx, other) {
+    exports.onCollision = function(ctx, self, other) {
       ${Object.entries(graph.nodes)
         .filter(([_id, node]) => node.type === "OnCollision")
-        .map(([id]) => `__onCollision_${id}(ctx, other);`)
+        .map(([id]) => `__onCollision_${id}(ctx, self, other);`)
         .join("\n")}
     };
   `;
