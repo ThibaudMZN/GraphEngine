@@ -15,6 +15,7 @@ export type NodeType =
   | "Operator"
   | "Input"
   | "Constant"
+  | "Random"
   | "Move"
   | "Position"
   | "Velocity"
@@ -154,6 +155,22 @@ export const Nodes: Record<NodeType, Node> = {
     parameters: { value: 10 },
     outputs: [{ name: "value", type: "number" }],
     code: () => "",
+  },
+  Random: {
+    name: "Random",
+    category: "Data",
+    inputs: [
+      { name: "min", type: "number" },
+      { name: "max", type: "number" },
+    ],
+    outputs: [{ name: "value", type: "number" }],
+    code: () => "",
+    evaluateOutput: (id, node, connections) => {
+      const min = connections.getExpressionForSocket(id, "min");
+      const max = connections.getExpressionForSocket(id, "max");
+      if (!min || !max) return "";
+      return `Math.random() * ((${max}) - (${min})) + (${min})`;
+    },
   },
   Input: {
     name: "Input",
