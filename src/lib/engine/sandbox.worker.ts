@@ -28,13 +28,24 @@ const applyPhysics = (ctx: GameContext, delta: number) => {
   }
 };
 
-const isAABBColliding = (a: GameObject, b: GameObject) =>
-  !(
-    a.position.x + a.size.width < b.position.x ||
-    a.position.x > b.position.x + b.size.width ||
-    a.position.y + a.size.height < b.position.y ||
-    a.position.y > b.position.y + b.size.height
+const isAABBColliding = (a: GameObject, b: GameObject) => {
+  const aLeft = a.position.x - a.size.width / 2;
+  const aRight = a.position.x + a.size.width / 2;
+  const aTop = a.position.y - a.size.height / 2;
+  const aBottom = a.position.y + a.size.height / 2;
+
+  const bLeft = b.position.x - b.size.width / 2;
+  const bRight = b.position.x + b.size.width / 2;
+  const bTop = b.position.y - b.size.height / 2;
+  const bBottom = b.position.y + b.size.height / 2;
+
+  return !(
+    aRight < bLeft ||
+    aLeft > bRight ||
+    aBottom < bTop ||
+    aTop > bBottom
   );
+};
 
 const detectCollisions = (ctx: GameContext) => {
   const objs = ctx.objects;

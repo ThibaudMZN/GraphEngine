@@ -57,6 +57,7 @@ export class EngineRuntime {
   private canvas: HTMLCanvasElement;
   private lastTime = 0;
   private running = false;
+  private canvasContext: CanvasRenderingContext2D | null = null;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -141,6 +142,7 @@ export class EngineRuntime {
   start() {
     this.lastTime = performance.now();
     this.running = true;
+    this.canvasContext = this.canvas.getContext("2d")!;
     const loop = (time: number) => {
       const delta = (time - this.lastTime) / 1000;
       this.lastTime = time;
@@ -156,7 +158,8 @@ export class EngineRuntime {
   }
 
   render() {
-    const c = this.canvas.getContext("2d")!;
+    if (!this.canvasContext) return;
+    const c = this.canvasContext;
     c.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
     c.fillStyle = "skyblue";
