@@ -18,7 +18,7 @@ export type NodeInstance = {
   parameters?: Record<string, any>;
 };
 
-type ConnectionPoint = {
+export type ConnectionPoint = {
   id: NodeId;
   name: string;
 };
