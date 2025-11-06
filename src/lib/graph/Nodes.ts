@@ -22,7 +22,9 @@ export type NodeType =
   | "Size"
   | "Screen"
   | "Rotate"
-  | "Text";
+  | "Text"
+  | "SetVariable"
+  | "GetVariable";
 export const NodeCategories = [
   "Event",
   "Logic",
@@ -389,6 +391,37 @@ export const Nodes: Record<NodeType, Node> = {
           };
         ${flow}
     `;
+    },
+  },
+  SetVariable: {
+    name: "Set Variable",
+    category: "Event",
+    inputs: [
+      { name: "flow", type: "flow" },
+      { name: "value", type: "number" },
+    ],
+    outputs: [{ name: "flow", type: "flow" }],
+    parameters: { name: "defaultName" },
+    code: (id, node, connections) => {
+      const valueExpr = connections.getExpressionForSocket(id, "value");
+      const name = node.parameters?.name;
+      if (!name || valueExpr === undefined) return "";
+
+      return `
+          ctx.variables["${name}"] = ${valueExpr};
+        `;
+    },
+  },
+  GetVariable: {
+    name: "Get Variable",
+    category: "Event",
+    outputs: [{ name: "value", type: "number" }],
+    parameters: { name: "defaultName" },
+    code: () => "",
+    evaluateOutput: (id, node, connections) => {
+      const name = node.parameters?.name;
+      if (!name) return "";
+      return `ctx.variables["${name}"]`;
     },
   },
 } as const;

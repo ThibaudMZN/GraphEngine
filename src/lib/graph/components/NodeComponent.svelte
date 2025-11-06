@@ -28,6 +28,7 @@
   import TextComponent from "./customNodeComponents/TextComponent.svelte";
   import ColorComponent from "./customNodeComponents/ColorComponent.svelte";
   import OnCollisionComponent from "./customNodeComponents/OnCollisionComponent.svelte";
+  import VariableComponent from "./customNodeComponents/VariableComponent.svelte";
 
   type Props = {
     node: NodeInstance;
@@ -74,6 +75,8 @@
     OnCollision: [
       { component: OnCollisionComponent, position: { x: 1, y: 1 } },
     ],
+    SetVariable: [{ component: VariableComponent, position: { x: 2, y: 2 } }],
+    GetVariable: [{ component: VariableComponent, position: { x: 1, y: 1 } }],
   } as const;
 
   const nodeDetails: Node = Nodes[node.type];

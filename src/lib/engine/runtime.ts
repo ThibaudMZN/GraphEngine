@@ -43,6 +43,7 @@ export type GameContext = {
   timers: Record<string, Timer>;
   texts: Record<string, Text>;
   collisions: Record<string, Set<string>>;
+  variables: Record<string, any>;
 };
 
 type WorkerMessage = {
@@ -107,7 +108,7 @@ export class EngineRuntime {
     for (const k in this.ctx.input.pressed) this.ctx.input.pressed[k] = false;
   }
 
-  private initContext() {
+  initContext() {
     this.ctx = {
       objects: {
         player: {
@@ -121,9 +122,9 @@ export class EngineRuntime {
         },
         wall: {
           type: "Static",
-          position: { x: 25, y: 500 },
+          position: { x: 400, y: 500 },
           rotation: 0,
-          size: { width: 200, height: 50 },
+          size: { width: 50, height: 300 },
           collidable: true,
         },
       },
@@ -135,6 +136,7 @@ export class EngineRuntime {
       timers: {},
       texts: {},
       collisions: {},
+      variables: {},
     };
     return this.ctx;
   }
