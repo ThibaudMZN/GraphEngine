@@ -48,7 +48,7 @@ export type Node = {
     id: NodeId,
     node: NodeInstance,
     connections: ConnectionResolver,
-  ) => string;
+  ) => string | undefined;
   parameters?: Record<string, any>;
 };
 export const Nodes: Record<NodeType, Node> = {
@@ -232,7 +232,7 @@ export const Nodes: Record<NodeType, Node> = {
       const a = connections.getExpressionForSocket(id, "A");
       const b = connections.getExpressionForSocket(id, "B");
       const operator = node.parameters?.operator;
-      if (!operator) return "";
+      if (!operator || !a || !b) return undefined;
       return `${a} ${operator} ${b}`;
     },
   },

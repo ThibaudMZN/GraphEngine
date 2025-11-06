@@ -39,14 +39,15 @@ export function createConnectionResolver(
         (c) => c.to.id === id && c.to.name === socketName,
       );
       if (!conn) {
+        if (visited.has(`${id}-${socketName}`)) return undefined;
         const node = graph.nodes[id];
         const nodeDetails = Nodes[node.type];
         if (nodeDetails.evaluateOutput) {
-          //TODO: We hit a "too much recursion" here if the socket is not connected
+          visited.add(`${id}-${socketName}`);
           return nodeDetails.evaluateOutput(
             id,
             node,
-            createConnectionResolver(graph, sceneId),
+            createConnectionResolver(graph, sceneId, visited),
           );
         }
         if (node.parameters?.[socketName] !== undefined) {
