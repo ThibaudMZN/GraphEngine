@@ -104,7 +104,12 @@
           const isSameType = selectedConnection.connectionType === portType;
           const isInOut =
             selectedConnection.connectionDirection !== portDirection;
-          if (isSameType && isInOut) {
+          const isInputWithConnection =
+            portDirection === "input" &&
+            $graphStore.connections.find(
+              (c) => c.to.id === targetId && c.to.name === portName,
+            );
+          if (isSameType && isInOut && !isInputWithConnection) {
             const a = {
               id: selectedConnection.id,
               name: selectedConnection.connectionName,
