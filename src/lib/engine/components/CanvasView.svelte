@@ -8,11 +8,14 @@
   import IconButton from "../../components/IconButton.svelte";
   import Button from "../../components/Button.svelte";
   import { capitalizeFirstLetter } from "../../data/strings";
+  import { type Unsubscriber } from "svelte/store";
 
   let canvas: HTMLCanvasElement | undefined = $state();
   let engine: EngineRuntime | undefined = $state();
   let viewMode: "Game" | "Code" = $state("Game");
   let running: boolean = $state(false);
+  let fps: number = $state(0);
+  let unsubscribe: Unsubscriber | undefined = $state();
 
   const startEngine = async () => {
     running = true;
@@ -22,6 +25,10 @@
 
     await engine.loadScript(jsCode);
     engine.init();
+    if (unsubscribe) unsubscribe();
+    unsubscribe = engine.fps.subscribe((f) => {
+      fps = Math.round(f);
+    });
   };
 
   // onMount(async () => {
@@ -84,6 +91,9 @@
           <span class="alt-text">Press Run to preview your game</span>
         </div>
       {/if}
+      <div class="canvas-infos">
+        <span>FPS: {fps}</span>
+      </div>
     </div>
     {#if viewMode === "Code"}
       <Highlight language={javascript} code={$generatedCodeStore} />
@@ -173,6 +183,22 @@
           font-size: 14px;
           line-height: 20px;
         }
+      }
+
+      .canvas-infos {
+        position: absolute;
+        bottom: 16px;
+        right: 16px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        font-size: 14px;
+        line-height: 20px;
+        color: var(--alt-text);
+        padding: 9px 13px;
+        background: var(--background);
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
       }
     }
   }

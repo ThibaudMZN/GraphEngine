@@ -1,4 +1,5 @@
 import type { Vector2 } from "../graph/GraphStore";
+import { get, type Writable, writable } from "svelte/store";
 
 type BaseGameObject = {
   position: Vector2;
@@ -59,6 +60,7 @@ export class EngineRuntime {
   private lastTime = 0;
   private running = false;
   private canvasContext: CanvasRenderingContext2D | null = null;
+  public fps: Writable<number> = writable<number>(60);
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -147,6 +149,9 @@ export class EngineRuntime {
     this.canvasContext = this.canvas.getContext("2d")!;
     const loop = (time: number) => {
       const delta = (time - this.lastTime) / 1000;
+      const currentFPS = 1 / delta;
+      const fps = get(this.fps);
+      this.fps.set(fps + (currentFPS - fps) * 0.1);
       this.lastTime = time;
       this.worker.postMessage({ type: "update", ctx: this.ctx, delta });
       this.render();
