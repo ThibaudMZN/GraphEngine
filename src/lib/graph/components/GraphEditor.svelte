@@ -14,6 +14,7 @@
   import PanelTitlebar from "../../components/PanelTitlebar.svelte";
   import IconButton from "../../components/IconButton.svelte";
   import { isInside, normalizeRect, type Rect } from "../Geometry";
+  import ShortcutMenu from "./ShortcutMenu.svelte";
 
   const MIN_ZOOM = 0.25;
   const MAX_ZOOM = 2;
@@ -26,6 +27,7 @@
   let normalizedMarquee = $derived(
     marquee ? normalizeRect(marquee) : undefined,
   );
+  let showShortcutMenu: boolean = $state(false);
 
   type ConnectionDetails = {
     startPosition: Vector2;
@@ -47,6 +49,8 @@
     | undefined = $state();
   let isPressingCtrl: boolean = $state(false);
   let currentMouse: Vector2 = $state({ x: 0, y: 0 });
+  let currentDOMMouse: Vector2 = $state({ x: 0, y: 0 });
+  let shortcutMenuPosition: Vector2 = $state({ x: 0, y: 0 });
 
   $effect(() => {
     zoom;
@@ -162,6 +166,7 @@
 
   const handleMouseMove = (e: MouseEvent) => {
     currentMouse = svgProjection(e.clientX, e.clientY);
+    currentDOMMouse = { x: e.clientX, y: e.clientY };
     if (isPanning) {
       const dx = e.clientX - lastMouse.x;
       const dy = e.clientY - lastMouse.y;
@@ -306,6 +311,10 @@
           e.preventDefault();
         }
       }
+      if (e.code === "Space") {
+        shortcutMenuPosition = { x: currentDOMMouse.x, y: currentDOMMouse.y };
+        showShortcutMenu = true;
+      }
     }
   };
 
@@ -414,6 +423,13 @@
       {/if}
     </g>
   </svg>
+  {#if showShortcutMenu}
+    <ShortcutMenu
+      position={shortcutMenuPosition}
+      closeMenu={() => (showShortcutMenu = false)}
+      {svgProjection}
+    />
+  {/if}
   <div class="graph-infos">
     <span>Nodes: {Object.keys($graphStore.nodes).length}</span>
     <span>Connections: {$graphStore.connections.length}</span>
